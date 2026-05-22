@@ -1,218 +1,311 @@
-Welcome to your new TanStack Start app! 
+# Vetpedia
 
-# Getting Started
+Vetpedia is an application for managing veterinary pharmacology data as a searchable, reviewable, and indexable data source.
 
-To run this application:
+The technical goal of the project is to manage veterinary pharmacology data with traceability, review states, and fast search. It is not a PDF repository and it is not a substitute for veterinary judgment.
+
+## License
+
+MIT.
+
+## Technical scope
+
+Vetpedia is designed as a data management system for building and maintaining a veterinary data source.
+
+The system should support:
+
+- preserving source traceability;
+- storing units in SQLite;
+- generating search-optimized documents;
+- indexing those documents in Typesense;
+- reviewing, correcting, and approving information progressively;
+- separating public search data from privileged review data.
+
+## Conceptual model
+
+The main unit in the system is a pharmacological monograph.
+
+```txt
+1 unit ~= 1 drug / monograph
+```
+
+Example units:
+
+- Acepromazine
+- Meloxicam
+- Cephalexin
+- Acetazolamide
+
+There are also cross-reference units:
+
+```txt
+Mineral oil -> Paraffin
+Acetaminophen -> Paracetamol
+```
+
+Each unit can contain clinical sections:
+
+- formulations;
+- action;
+- use;
+- indications;
+- safety and handling;
+- contraindications;
+- adverse reactions;
+- interactions;
+- dosage;
+- references.
+
+Sections generate smaller search documents, while still pointing back to their original unit.
+
+```txt
+unit
+  -> sections
+  -> search_documents
+```
+
+## Review states
+
+Data is not considered clinically validated just because it was extracted.
+
+Defined states:
+
+```txt
+raw            raw or imported data that has not been processed
+parsed         automatically extracted and structurally coherent
+needs_review   requires human review
+soft_approved  human-reviewed, not veterinary-validated
+vet_approved   validated by a veterinarian
+rejected        should not be used
+```
+
+## Sources, traceability, and auditability
+
+Every unit should preserve source information:
+
+- source file;
+- starting line;
+- ending line;
+- approximate page when available;
+- raw text;
+- normalized text;
+- quality issues;
+- review state.
+
+This makes it possible to audit where each data point came from and correct errors without losing context.
+
+## Data architecture
+
+SQLite is the operational source of truth.
+
+Typesense is a rebuildable search index.
+
+```txt
+admin-only data entry / curation
+  -> SQLite
+  -> search_documents
+  -> Typesense
+  -> search/review UI
+```
+
+If the Typesense index is lost, it should be rebuildable from SQLite.
+
+## Database
+
+The operational database is SQLite.
+
+In production, you should mount a persistent volume for the database.
+
+Expected variable:
+
+```txt
+DATABASE_PATH=/data/vetpedia.sqlite
+```
+
+Agreed data access tooling:
+
+```txt
+drizzle-orm + better-sqlite3 + drizzle-kit
+```
+
+## Search
+
+Typesense is used as the search engine.
+
+The browser must never communicate with a Typesense administrative key directly.
+
+Expected MVP flow:
+
+```txt
+browser
+  -> TanStack Start server-side route/API
+  -> Typesense
+```
+
+Expected variables:
+
+```txt
+TYPESENSE_HOST=
+TYPESENSE_PORT=
+TYPESENSE_PROTOCOL=
+TYPESENSE_ADMIN_API_KEY=
+TYPESENSE_COLLECTION=vetpedia_search_documents
+```
+
+The index should prioritize results by review state:
+
+```txt
+vet_approved > soft_approved > parsed > needs_review
+```
+
+## Public and privileged access
+
+Public search should act as a discovery and limited consultation mechanism.
+
+Privileged access should be reserved for:
+
+- complete units;
+- raw text;
+- problematic OCR;
+- review tools;
+- corrections;
+- exports;
+- index administration.
+
+This keeps the public experience separate from the internal data-curation workflow.
+
+## Agreed stack
+
+```txt
+React
+TanStack Start
+TanStack Query
+SQLite
+Drizzle ORM
+Typesense
+Tailwind CSS v4
+Coss UI / Base UI for specific components
+Biome
+Vitest
+```
+
+## Expected file structure
+
+```txt
+src/
+  routes/
+    __root.tsx
+    index.tsx
+
+  components/
+    brand/
+      logo.tsx
+      wordmark.tsx
+
+    search-shell/
+      search-shell.tsx
+      search-input.tsx
+      search-filter-bar.tsx
+      search-result-list.tsx
+      search-preview-panel.tsx
+      types.ts
+
+    ui/
+      badge.tsx
+      button.tsx
+      card.tsx
+      input.tsx
+
+  server/
+    db/
+      client.ts
+      schema.ts
+      migrate.ts
+      migrations/
+      queries/
+        review.ts
+        search-documents.ts
+        units.ts
+
+    search/
+      collections.ts
+      index-documents.ts
+      search.ts
+      types.ts
+      typesense-client.ts
+
+  lib/
+    cn.ts
+    env.ts
+
+  styles.css
+```
+
+Organization rules:
+
+- `src/routes` composes pages.
+- `src/server` contains server-only code.
+- `src/server` must not be imported from client-side components.
+- large components live in their own folders.
+- large components should be split before becoming monolithic.
+- avoid oversized files.
+
+## Visual identity notes
+
+The interface uses Tailwind CSS v4 with CSS tokens in OKLCH.
+
+Base palette:
+
+```txt
+Almond Roca   #F0E8E0  oklch(0.935 0.014 67.7)
+Swiss Coffee  #D5C3AD  oklch(0.826 0.036 72.8)
+Coastal Plain #9FA694  oklch(0.714 0.027 124.4)
+Hinterland    #616C51  oklch(0.514 0.043 125.9)
+Golden Gun    #DDDD00  oklch(0.869 0.189 109.8)
+Joyful Ruby   #503136  oklch(0.352 0.046 9.1)
+```
+
+Expected usage:
+
+- `Hinterland`: primary action and selection.
+- `Joyful Ruby`: strong text, brand emphasis, controlled critical states.
+- `Almond Roca`: light base background.
+- `Swiss Coffee`: warm borders and surfaces.
+- `Coastal Plain`: neutral states and secondary accents.
+- `Golden Gun`: search highlight only; not a primary color.
+
+Fonts:
+
+```txt
+Headings: Zen Kaku Gothic Antique
+Body:     Zen Kaku Gothic New
+```
+
+Logo:
+
+```txt
+public/vetpedia-logo.svg
+```
+
+## Scripts
 
 ```bash
-bun install
-bun --bun run dev
+bun run dev
+bun run build
+bun run check
+bun run check-types
+bun run glados
+bun run test
 ```
 
-# Building For Production
-
-To build this application for production:
+`glados` runs the full validation chain:
 
 ```bash
-bun --bun run build
+bun run check && bun run build && bun run check-types
 ```
 
-## Testing
+## Clinical note
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+Vetpedia organizes veterinary pharmacology information. Information may come from OCR, translation, human review, or veterinary validation.
 
-```bash
-bun --bun run test
-```
-
-## Styling
-
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `bun install @tailwindcss/vite tailwindcss -D`
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
-
-```bash
-bun --bun run lint
-bun --bun run format
-bun --bun run check
-```
-
-
-## Deploy with Nitro
-
-This project uses Nitro as a generic server adapter, so it can run on any Node-compatible host.
-
-```bash
-npm run build
-node dist/server/index.mjs
-```
-
-The build output is a self-contained Node server. To deploy, push the `dist/` directory to your host (Render, Fly.io, your own VPS, etc.) and run the server command above.
-
-For host-specific presets (Vercel, Netlify, Cloudflare, AWS Lambda, etc.) and tuning, see https://v3.nitro.build/deploy.
-
-
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+The system must clearly expose the state of each piece of data. The application does not replace diagnosis, prescription, or professional veterinary judgment.

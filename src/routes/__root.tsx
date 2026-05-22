@@ -45,10 +45,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body>
 				{children}
+				<Scripts />
 				<TanStackDevtools
 					config={{
 						position: "bottom-right",
+						inspectHotkey: ["Shift", "Alt", "CtrlOrMeta"],
+						sourceAction: "ide-warp",
 					}}
+					eventBusConfig={{ debug: false }}
 					plugins={[
 						{
 							name: "Tanstack Router",
@@ -57,7 +61,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						TanStackQueryDevtools,
 					]}
 				/>
-				<Scripts />
 			</body>
 		</html>
 	);

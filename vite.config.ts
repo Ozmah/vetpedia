@@ -11,6 +11,9 @@ const config = defineConfig({
 	resolve: { tsconfigPaths: true },
 	plugins: [
 		devtools({
+			injectSource: {
+				enabled: true,
+			},
 			eventBusConfig: {
 				port: 1234,
 				debug: false,
@@ -27,11 +30,11 @@ const config = defineConfig({
 			},
 			removeDevtoolsOnBuild: true,
 		}),
+		tailwindcss(),
+		tanstackStart(),
 		nitro({
 			preset: "bun",
 		}),
-		tailwindcss(),
-		tanstackStart(),
 		viteReact(),
 	],
 });
