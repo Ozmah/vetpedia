@@ -50,7 +50,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					config={{
 						position: "bottom-right",
 						inspectHotkey: ["Shift", "Alt", "CtrlOrMeta"],
-						sourceAction: "ide-warp",
 					}}
 					eventBusConfig={{ debug: false }}
 					plugins={[

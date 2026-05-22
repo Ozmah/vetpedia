@@ -21,8 +21,8 @@ export function SearchDetail({ result }: SearchDetailProps) {
 						<div className="mt-4 flex flex-wrap gap-2">
 							<StatusBadge status={result.status} />
 							{result.detail.badges.map((badge) => (
-							<span
-								className="inline-flex min-h-8 items-center rounded-[0.65rem] border border-border bg-background/40 px-3 font-medium font-mono text-[0.68rem]"
+								<span
+									className="inline-flex min-h-8 items-center rounded-[0.65rem] border border-border bg-background/40 px-3 font-medium font-mono text-[0.68rem]"
 									key={badge}
 								>
 									{badge}
@@ -48,7 +48,7 @@ export function SearchDetail({ result }: SearchDetailProps) {
 						{result.detail.dosage.length ? (
 							result.detail.dosage.map((group) => (
 								<div key={group.species}>
-							<p className="mb-3 inline-flex items-center gap-2 rounded-[0.75rem] border border-border bg-muted px-3 py-2 font-semibold font-mono text-[0.72rem]">
+									<p className="mb-3 inline-flex items-center gap-2 rounded-[0.75rem] border border-border bg-muted px-3 py-2 font-mono font-semibold text-[0.72rem]">
 										<CatIcon
 											aria-hidden="true"
 											className="size-4 text-primary"

@@ -1,8 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SearchShell } from "../components/search-shell/search-shell";
 
-export const Route = createFileRoute("/")({ component: Home });
+type HomeSearch = {
+	q: string;
+};
+
+export const Route = createFileRoute("/")({
+	validateSearch: (search): HomeSearch => ({
+		q: typeof search.q === "string" ? search.q.slice(0, 120) : "",
+	}),
+	component: Home,
+});
 
 function Home() {
-	return <SearchShell />;
+	const search = Route.useSearch();
+
+	return <SearchShell initialQuery={search.q} />;
 }

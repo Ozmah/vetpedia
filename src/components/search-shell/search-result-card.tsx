@@ -1,21 +1,30 @@
-import { CheckIcon, ChevronRightIcon } from "lucide-react";
+import {
+	CheckIcon,
+	ChevronRightIcon,
+	FileTextIcon,
+	FlaskConicalIcon,
+	Repeat2Icon,
+	SyringeIcon,
+} from "lucide-react";
 import { cn } from "../../lib/cn";
 import { SearchDetail } from "./search-detail";
 import { StatusBadge } from "./status-badge";
-import type { SearchResult } from "./types";
+import type { SearchResult, SearchSection } from "./types";
 
 type SearchResultCardProps = {
 	result: SearchResult;
 	isSelected: boolean;
 	onSelect: () => void;
+	queryTerms: string[];
 };
 
 export function SearchResultCard({
 	result,
 	isSelected,
 	onSelect,
+	queryTerms,
 }: SearchResultCardProps) {
-	const Icon = result.icon;
+	const Icon = iconByType[result.type];
 
 	return (
 		<li>
@@ -45,7 +54,7 @@ export function SearchResultCard({
 						Sección: {result.section}
 					</p>
 					<p className="mt-2 text-sm leading-6">
-						{highlightTerms(result.excerpt, ["meloxicam", "gatos"])}
+						{highlightTerms(result.excerpt, queryTerms)}
 					</p>
 					<div className="mt-3 flex flex-wrap gap-2">
 						<StatusBadge status={result.status} />
@@ -84,8 +93,19 @@ export function SearchResultCard({
 	);
 }
 
+const iconByType: Record<SearchSection, typeof FileTextIcon> = {
+	class: FlaskConicalIcon,
+	dosage: SyringeIcon,
+	drug: FileTextIcon,
+	interaction: Repeat2Icon,
+};
+
 function highlightTerms(text: string, terms: string[]) {
-	const pattern = new RegExp(`(${terms.join("|")})`, "gi");
+	const safeTerms = terms.map(escapeRegExp).filter(Boolean);
+
+	if (safeTerms.length === 0) return text;
+
+	const pattern = new RegExp(`(${safeTerms.join("|")})`, "gi");
 	const parts = text.split(pattern);
 	const seen = new Map<string, number>();
 
@@ -105,4 +125,8 @@ function highlightTerms(text: string, terms: string[]) {
 			<span key={key}>{part}</span>
 		);
 	});
+}
+
+function escapeRegExp(value: string) {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

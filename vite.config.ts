@@ -11,9 +11,6 @@ const config = defineConfig({
 	resolve: { tsconfigPaths: true },
 	plugins: [
 		devtools({
-			injectSource: {
-				enabled: true,
-			},
 			eventBusConfig: {
 				port: 1234,
 				debug: false,

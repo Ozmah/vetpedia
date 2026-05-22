@@ -12,5 +12,7 @@ dist-ssr
 __unconfig*
 todos.json
 routeTree.gen.ts
+data/
 *.md
 !README.md
+!from-pdf-to-ndjson.md

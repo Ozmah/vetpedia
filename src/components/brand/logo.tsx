@@ -8,12 +8,14 @@ type VetpediaLogoProps = {
 export function VetpediaLogo({ className, markClassName }: VetpediaLogoProps) {
 	return (
 		<div className={cn("flex items-center gap-3", className)}>
-			<VetpediaMark className={cn("size-12 text-primary", markClassName)} />
+			<VetpediaMark
+				className={cn("size-10 text-primary sm:size-12", markClassName)}
+			/>
 			<div className="leading-none">
-				<p className="font-heading font-semibold text-4xl text-foreground tracking-[-0.045em]">
+				<p className="font-heading font-semibold text-3xl text-foreground tracking-[-0.045em] sm:text-4xl">
 					Vetpedia
 				</p>
-				<p className="mt-1.5 text-muted-foreground text-sm tracking-wide">
+				<p className="mt-1 text-muted-foreground text-xs tracking-wide sm:mt-1.5 sm:text-sm">
 					Farmacología veterinaria
 				</p>
 			</div>
