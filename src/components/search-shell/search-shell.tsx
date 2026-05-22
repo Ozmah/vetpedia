@@ -2,7 +2,7 @@
 
 import { useNavigate } from "@tanstack/react-router";
 import { DatabaseIcon, Loader2Icon } from "lucide-react";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { VetpediaLogo } from "../brand/logo";
 import { SearchDetail } from "./search-detail";
 import { SearchInput } from "./search-input";
@@ -11,108 +11,38 @@ import type { SearchResponse } from "./types";
 
 type SearchShellProps = {
 	initialQuery: string;
+	searchResponse: SearchResponse;
 };
 
-const EMPTY_RESPONSE: SearchResponse = {
-	query: "",
-	resultCount: 0,
-	hasMore: false,
-	results: [],
-};
-
-export function SearchShell({ initialQuery }: SearchShellProps) {
+export function SearchShell({
+	initialQuery,
+	searchResponse,
+}: SearchShellProps) {
 	const navigate = useNavigate();
 	const [isPending, startTransition] = useTransition();
-	const [query, setQuery] = useState(initialQuery);
-	const [searchResponse, setSearchResponse] =
-		useState<SearchResponse>(EMPTY_RESPONSE);
-	const [isSearching, setIsSearching] = useState(false);
-	const [searchError, setSearchError] = useState<string | null>(null);
 	const [selectedId, setSelectedId] = useState("");
 	const results = searchResponse.results;
+	const effectiveSelectedId = selectedId || results[0]?.id || "";
 	const selectedResult = useMemo(
-		() => results.find((result) => result.id === selectedId) ?? results[0],
-		[results, selectedId],
+		() =>
+			results.find((result) => result.id === effectiveSelectedId) ?? results[0],
+		[results, effectiveSelectedId],
 	);
 	const queryTerms = useMemo(
-		() => query.split(" ").filter((term) => term.trim().length >= 2),
-		[query],
+		() => initialQuery.split(" ").filter((term) => term.trim().length >= 2),
+		[initialQuery],
 	);
 
-	useEffect(() => {
-		setQuery(initialQuery);
-	}, [initialQuery]);
+	function submitSearch(value: string) {
+		const normalizedQuery = value.trim().replace(/\s+/g, " ");
 
-	useEffect(() => {
-		setSelectedId(results[0]?.id ?? "");
-	}, [results]);
-
-	useEffect(() => {
-		const controller = new AbortController();
-		const normalizedQuery = query.trim().replace(/\s+/g, " ");
-
-		if (!normalizedQuery) {
-			setSearchResponse(EMPTY_RESPONSE);
-			setSearchError(null);
-			setIsSearching(false);
-
-			return () => controller.abort();
-		}
-
-		const timeoutId = window.setTimeout(async () => {
-			setIsSearching(true);
-			setSearchError(null);
-
-			try {
-				const params = new URLSearchParams({
-					q: normalizedQuery,
-					limit: "20",
-				});
-				const response = await fetch(`/api/search?${params.toString()}`, {
-					headers: { Accept: "application/json" },
-					signal: controller.signal,
-				});
-
-				if (!response.ok) {
-					throw new Error("Search request failed");
-				}
-
-				setSearchResponse((await response.json()) as SearchResponse);
-			} catch (error) {
-				if (controller.signal.aborted) return;
-
-				console.error(error);
-				setSearchError("No se pudo ejecutar la búsqueda.");
-			} finally {
-				if (!controller.signal.aborted) {
-					setIsSearching(false);
-				}
-			}
-		}, 180);
-
-		return () => {
-			controller.abort();
-			window.clearTimeout(timeoutId);
-		};
-	}, [query]);
-
-	useEffect(() => {
-		const normalizedQuery = query.trim().replace(/\s+/g, " ");
-
-		if (normalizedQuery === initialQuery) return;
-
-		const timeoutId = window.setTimeout(() => {
-			startTransition(() => {
-				navigate({
-					to: "/",
-					search: { q: normalizedQuery },
-					replace: true,
-				});
+		startTransition(() => {
+			navigate({
+				to: "/",
+				search: normalizedQuery ? { q: normalizedQuery } : {},
 			});
-		}, 250);
-
-		return () => window.clearTimeout(timeoutId);
-	}, [initialQuery, navigate, query]);
+		});
+	}
 
 	return (
 		<main className="min-h-dvh overflow-x-hidden px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
@@ -121,29 +51,29 @@ export function SearchShell({ initialQuery }: SearchShellProps) {
 					<div className="flex items-start justify-center">
 						<VetpediaLogo className="justify-center" />
 					</div>
-					<SearchInput onChange={setQuery} value={query} />
+					<SearchInput
+						defaultValue={initialQuery}
+						onClear={() => submitSearch("")}
+						onSearch={submitSearch}
+					/>
 				</header>
 
 				<section className="grid gap-4" aria-live="polite">
-					<SearchStatus
-						isLoading={isPending || isSearching}
-						response={searchResponse}
-					/>
+					<SearchStatus isLoading={isPending} response={searchResponse} />
 
 					<div className="grid gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(34rem,1.08fr)] lg:items-start">
 						<ul className="grid gap-4">
-							{searchError ? <ErrorState message={searchError} /> : null}
 							{results.map((result) => (
 								<SearchResultCard
-									isSelected={result.id === selectedId}
+									isSelected={result.id === effectiveSelectedId}
 									key={result.id}
 									onSelect={() => setSelectedId(result.id)}
 									queryTerms={queryTerms}
 									result={result}
 								/>
 							))}
-							{!searchError && !isSearching && results.length === 0 ? (
-								<EmptyState hasQuery={Boolean(query.trim())} />
+							{!isPending && results.length === 0 ? (
+								<EmptyState hasQuery={Boolean(initialQuery.trim())} />
 							) : null}
 						</ul>
 
@@ -189,15 +119,6 @@ function SearchStatus({
 		<p className="font-mono text-[0.72rem] text-muted-foreground uppercase tracking-[0.12em]">
 			{resultLabel(response)}
 		</p>
-	);
-}
-
-function ErrorState({ message }: { message: string }) {
-	return (
-		<li className="rounded-[1.25rem] border border-destructive/35 bg-destructive/8 p-6 text-destructive text-sm">
-			<p className="font-semibold">Error de búsqueda</p>
-			<p className="mt-2">{message}</p>
-		</li>
 	);
 }
 
