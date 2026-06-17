@@ -32,12 +32,12 @@ RUN bun install
 
 COPY . /app
 
-RUN mkdir -p database storage bootstrap/cache \
-    && touch database/vetpedial.sqlite
+RUN mkdir -p /app-data database storage bootstrap/cache \
+    && touch /app-data/vetpedia.sqlite
 
 RUN composer install \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader
 
-ENTRYPOINT ["bun", "x", "varlock", "run", "--", "frankenphp", "run", "--config", "/app/Caddyfile"]
+ENTRYPOINT ["bun", "x", "varlock", "run", "--", "sh", "/app/docker/entrypoint.sh"]

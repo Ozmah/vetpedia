@@ -17,11 +17,13 @@ services:
       - ./:/app
       - vendor_data:/app/vendor
       - node_modules_data:/app/node_modules
+      - database_data:/app-data
       - storage_data:/app/storage
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - typesense
+      typesense:
+        condition: service_healthy
     networks:
       - vetpedia
     tty: true
@@ -30,15 +32,25 @@ services:
     image: typesense/typesense:30.2
     ports:
       - "8108:8108"
+    environment:
+      TYPESENSE_DATA_DIR: /data
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-local-development-typesense-key}
+      TYPESENSE_ENABLE_CORS: true
     volumes:
       - typesense_data:/data
-    command: "--data-dir /data --api-key=${TYPESENSE_API_KEY:-local-development-typesense-key} --enable-cors"
+    command: ""
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8108'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - vetpedia
 
 volumes:
   vendor_data:
   node_modules_data:
+  database_data:
   storage_data:
   caddy_data:
   caddy_config:

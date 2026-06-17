@@ -1,0 +1,100 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "description": "Project overview and current technical direction for the Laravel rebuild. Reviews should keep public OSS language."
+    },
+    {
+      "path": "AGENTS.md",
+      "description": "Repository-level development guidelines. Defines Laravel Boost conventions, Action pattern expectations, testing rules, and frontend/backend architectural constraints."
+    },
+    {
+      "path": ".env.schema",
+      "description": "Varlock environment contract for Laravel, Infisical, SQLite, Typesense, public Vite flags, and security-sensitive production defaults. Review carefully for fail-closed production behavior."
+    },
+    {
+      "path": "Dockerfile",
+      "description": "FrankenPHP PHP 8.5 runtime image with Composer, Bun, SQLite extensions, Varlock entrypoint, and Laravel bootstrap dependencies."
+    },
+    {
+      "path": "docker/entrypoint.sh",
+      "description": "Idempotent container startup script. Creates the configured SQLite path when missing, runs pending migrations, and starts FrankenPHP. Must never reset or destroy persisted data."
+    },
+    {
+      "path": "docker-compose.yml",
+      "description": "Local development stack for the FrankenPHP app and Typesense. Includes persistent volumes, Typesense healthcheck, and container-first runtime wiring."
+    },
+    {
+      "path": "Caddyfile",
+      "description": "Minimal FrankenPHP/Caddy configuration copied from the known-working starter precedent. Keep simple until worker mode or advanced serving behavior is justified."
+    },
+    {
+      "path": "composer.json",
+      "description": "Laravel/PHP dependency manifest and Composer scripts. Dev scripts must respect FrankenPHP and Varlock rather than starting a separate PHP server."
+    },
+    {
+      "path": "package.json",
+      "description": "Frontend/tooling dependency manifest. Contains Vite Plus, React/Inertia/Tailwind, Wayfinder, Varlock, and environment validation scripts."
+    },
+    {
+      "path": "vite.config.ts",
+      "description": "Vite Plus configuration for Laravel, Inertia React, Tailwind CSS v4, Wayfinder, and Docker-compatible HMR on port 5173."
+    },
+    {
+      "path": "config/database.php",
+      "description": "Laravel database configuration. SQLite is the source of truth; DB_DATABASE should point to a persistent volume path in container/Railway environments."
+    },
+    {
+      "path": "config/fortify.php",
+      "description": "Laravel Fortify authentication configuration. Public registration policy, 2FA, and auth flow changes should be reviewed for security impact."
+    },
+    {
+      "path": "routes/web.php",
+      "description": "Primary Laravel web routes for Inertia pages. Controllers should stay thin and avoid embedding business logic."
+    },
+    {
+      "path": "app/Actions",
+      "description": "Business logic Action classes. Mutating domain Actions should own transactions and explicitly call audit logging when domain data changes."
+    },
+    {
+      "path": "app/Http",
+      "description": "HTTP layer. Controllers should be thin; validation/authorization belongs in Form Requests, Policies, or Gates."
+    },
+    {
+      "path": "app/Models",
+      "description": "Eloquent models for users and future Vetpedia domain entities. Watch for unsafe mass assignment, missing casts, and relationship/query performance issues."
+    },
+    {
+      "path": "app/Providers",
+      "description": "Laravel service providers. Global bindings, auth hooks, Fortify customization, and boot-time behavior should be explicit and minimal."
+    },
+    {
+      "path": "database/migrations",
+      "description": "Laravel schema migrations. SQLite compatibility, reversibility, auditability, and production-safe migration behavior are critical."
+    },
+    {
+      "path": "database/seeders",
+      "description": "Database seeders for initial users, roles, and future catalogs. Seeders must be idempotent and must not leak real secrets."
+    },
+    {
+      "path": "resources/js/app.tsx",
+      "description": "Inertia React application bootstrap. Review provider setup, global client behavior, and frontend security assumptions."
+    },
+    {
+      "path": "resources/js/pages",
+      "description": "Inertia page components. Use Wayfinder-generated routes/actions instead of hardcoded backend URLs."
+    },
+    {
+      "path": "resources/js/components",
+      "description": "Reusable React UI components. Preserve accessibility, keyboard support, and safe rendering of user-provided content."
+    },
+    {
+      "path": "resources/js/actions",
+      "description": "Generated Wayfinder action bindings. This directory is generated and should not be manually edited."
+    },
+    {
+      "path": "resources/js/routes",
+      "description": "Generated Wayfinder route bindings. This directory is generated and should not be manually edited."
+    }
+  ]
+}
