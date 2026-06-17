@@ -10,6 +10,7 @@
 /storage/*.key
 /storage/pail
 /vendor
+/database/*.sqlite
 .DS_Store
 .env
 .env.backup
@@ -25,3 +26,4 @@ Homestead.yaml
 /.vscode
 /.zed
 /tmp/
+/local

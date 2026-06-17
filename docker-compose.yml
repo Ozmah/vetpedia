@@ -1,0 +1,61 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:443"
+      - "5173:5173"
+    environment:
+      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID:?INFISICAL_PROJECT_ID is required}
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID:?INFISICAL_CLIENT_ID is required}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET:?INFISICAL_CLIENT_SECRET is required}
+      APP_NAME: ${APP_NAME:-Vetpedia}
+      APP_ENV: ${APP_ENV:-local}
+      APP_URL: ${APP_URL:-https://localhost:8000}
+    volumes:
+      - ./:/app
+      - vendor_data:/app/vendor
+      - node_modules_data:/app/node_modules
+      - database_data:/app-data
+      - storage_data:/app/storage
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      typesense:
+        condition: service_healthy
+    networks:
+      - vetpedia
+    tty: true
+
+  typesense:
+    image: typesense/typesense:30.2
+    ports:
+      - "8108:8108"
+    environment:
+      TYPESENSE_DATA_DIR: /data
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-local-development-typesense-key}
+      TYPESENSE_ENABLE_CORS: true
+    volumes:
+      - typesense_data:/data
+    command: ""
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8108'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vetpedia
+
+volumes:
+  vendor_data:
+  node_modules_data:
+  database_data:
+  storage_data:
+  caddy_data:
+  caddy_config:
+  typesense_data:
+
+networks:
+  vetpedia:
+    name: vetpedia-fphp
