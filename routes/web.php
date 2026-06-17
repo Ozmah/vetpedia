@@ -43,12 +43,6 @@ Route::middleware('auth')->group(function (): void {
 });
 
 Route::middleware('guest')->group(function (): void {
-    // User...
-    Route::get('register', [UserController::class, 'create'])
-        ->name('register');
-    Route::post('register', [UserController::class, 'store'])
-        ->name('register.store');
-
     // User Password...
     Route::get('reset-password/{token}', [UserPasswordController::class, 'create'])
         ->name('password.reset');
