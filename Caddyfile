@@ -1,0 +1,16 @@
+# Intentionally minimal FrankenPHP config for the first bootstrap phase.
+# Keep the runtime simple until Vetpedia has enough evidence to justify
+# worker mode, file delivery tweaks, or thread tuning.
+
+{
+	frankenphp
+}
+
+localhost {
+	root public/
+	encode zstd br gzip
+
+	php_server {
+		try_files {path} index.php
+	}
+}

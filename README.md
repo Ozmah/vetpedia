@@ -2,17 +2,9 @@
 
 Vetpedia is a Laravel/Inertia application for maintaining and searching structured veterinary knowledge.
 
-This repository is the Laravel rebuild. The previous TanStack Start implementation is kept separately as `vetpedia-legacy` for reference only.
-
-## Status
-
-Early rebuild.
-
-The current codebase starts from Nuno Maduro's Laravel Inertia React starter. The first implementation phase is focused on reproducing the containerized FrankenPHP setup already used in Tesseract, then building the Vetpedia data model.
-
 ## Purpose
 
-Vetpedia stores veterinary knowledge as reviewed, structured records called **entries** or **fichas**.
+Vetpedia stores veterinary knowledge as reviewed, structured records called **entries**.
 
 The public search surface must only expose veterinary-approved content. Draft or documented-but-unapproved content can exist internally, but must not appear in normal public search.
 
