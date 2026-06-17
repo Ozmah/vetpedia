@@ -4,7 +4,9 @@
     "scripts": {
         "build": "vp build",
         "build:ssr": "vp build && vp build --ssr",
-        "dev": "vp dev",
+        "dev": "varlock run -- vp dev",
+        "env:check": "varlock load",
+        "secrets:scan": "varlock scan",
         "lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint --fix",
         "test:lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt --check resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint",
         "test:types": "tsc --noEmit"
@@ -19,6 +21,7 @@
         "vite-plus": "latest"
     },
     "dependencies": {
+        "@varlock/infisical-plugin": "^1.1.0",
         "@headlessui/react": "^2.2.10",
         "@inertiajs/react": "^3.0.3",
         "@inertiajs/vite": "^3.0.3",
@@ -51,7 +54,8 @@
         "tailwind-merge": "^3.5.0",
         "tailwindcss": "^4.2.2",
         "tailwindcss-animate": "^1.0.7",
-        "typescript": "^6.0.3"
+        "typescript": "^6.0.3",
+        "varlock": "^1.4.0"
     },
     "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.60.1",

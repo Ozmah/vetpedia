@@ -1,0 +1,49 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:443"
+      - "5173:5173"
+    environment:
+      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID:?INFISICAL_PROJECT_ID is required}
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID:?INFISICAL_CLIENT_ID is required}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET:?INFISICAL_CLIENT_SECRET is required}
+      APP_NAME: ${APP_NAME:-Vetpedia}
+      APP_ENV: ${APP_ENV:-local}
+      APP_URL: ${APP_URL:-https://localhost:8000}
+    volumes:
+      - ./:/app
+      - vendor_data:/app/vendor
+      - node_modules_data:/app/node_modules
+      - storage_data:/app/storage
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - typesense
+    networks:
+      - vetpedia
+    tty: true
+
+  typesense:
+    image: typesense/typesense:30.2
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense_data:/data
+    command: "--data-dir /data --api-key=${TYPESENSE_API_KEY:-local-development-typesense-key} --enable-cors"
+    networks:
+      - vetpedia
+
+volumes:
+  vendor_data:
+  node_modules_data:
+  storage_data:
+  caddy_data:
+  caddy_config:
+  typesense_data:
+
+networks:
+  vetpedia:
+    name: vetpedia-fphp

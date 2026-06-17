@@ -14,7 +14,7 @@ RUN install-php-extensions \
 
 WORKDIR /app
 
-COPY composer.json ./
+COPY composer.json composer.lock* ./
 
 RUN composer install \
     --no-interaction \
@@ -22,7 +22,7 @@ RUN composer install \
     --no-scripts \
     --optimize-autoloader
 
-COPY package.json ./
+COPY package.json bun.lock* ./
 
 RUN bun install
 
@@ -33,11 +33,11 @@ RUN bun install
 COPY . /app
 
 RUN mkdir -p database storage bootstrap/cache \
-    && touch database/database.sqlite
+    && touch database/vetpedial.sqlite
 
 RUN composer install \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader
 
-ENTRYPOINT ["frankenphp", "run", "--config", "/app/Caddyfile"]
+ENTRYPOINT ["bun", "x", "varlock", "run", "--", "frankenphp", "run", "--config", "/app/Caddyfile"]
