@@ -51,9 +51,28 @@ it('may delete user account', function (): void {
 
     $response->assertRedirectToRoute('home');
 
-    expect($user->fresh())->toBeNull();
+    expect(User::query()->find($user->id))->toBeNull()
+        ->and(User::withTrashed()->find($user->id)?->trashed())->toBeTrue();
 
     $this->assertGuest();
+});
+
+it('does not allow superadmin account deletion', function (): void {
+    $user = User::factory()->superadmin()->create([
+        'password' => Hash::make('password'),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->fromRoute('user-profile.edit')
+        ->delete(route('user.destroy'), [
+            'password' => 'password',
+        ]);
+
+    $response->assertForbidden();
+
+    expect($user->fresh())->not->toBeNull();
+
+    $this->assertAuthenticatedAs($user);
 });
 
 it('requires password to delete account', function (): void {
