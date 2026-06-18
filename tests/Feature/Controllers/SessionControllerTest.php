@@ -53,6 +53,35 @@ it('may create a session with remember me', function (): void {
     $this->assertAuthenticatedAs($user);
 });
 
+it('does not create a session for suspended users', function (): void {
+    User::factory()->withoutTwoFactor()->suspended()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('password'),
+    ]);
+
+    $response = $this->fromRoute('login')
+        ->post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'password',
+        ]);
+
+    $response->assertRedirectToRoute('login')
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+it('logs out suspended users with existing sessions', function (): void {
+    $user = User::factory()->suspended()->create();
+
+    $response = $this->actingAs($user)
+        ->get(route('dashboard'));
+
+    $response->assertRedirectToRoute('login');
+
+    $this->assertGuest();
+});
+
 it('redirects to two-factor challenge when enabled', function (): void {
     $user = User::factory()->create([
         'email' => 'test@example.com',

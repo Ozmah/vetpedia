@@ -4,7 +4,7 @@
     "scripts": {
         "build": "vp build",
         "build:ssr": "vp build && vp build --ssr",
-        "check": "composer lint",
+        "check": "if [ -f /.dockerenv ]; then composer lint; else docker compose exec -T -u \"$(id -u):$(id -g)\" app composer lint; fi",
         "dev": "varlock run -- vp dev",
         "env:check": "varlock load",
         "glados": "bun run env:check && bun run secrets:scan && composer validate --strict && composer test:lint && composer test:types && bun run build && bun run shodan",

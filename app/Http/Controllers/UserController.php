@@ -15,9 +15,9 @@ final readonly class UserController
 {
     public function destroy(DeleteUserRequest $request, #[CurrentUser] User $user, DeleteUser $action): RedirectResponse
     {
-        Auth::logout();
-
         $action->handle($user);
+
+        Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
