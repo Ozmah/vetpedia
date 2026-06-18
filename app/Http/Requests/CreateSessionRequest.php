@@ -34,7 +34,7 @@ final class CreateSessionRequest extends FormRequest
         /** @var User|null $user */
         $user = Auth::getProvider()->retrieveByCredentials($this->only('email', 'password'));
 
-        if (! $user || $user->isSuspended() || ! Auth::getProvider()->validateCredentials($user, $this->only('password'))) {
+        if (! $user || ! Auth::getProvider()->validateCredentials($user, $this->only('password')) || $user->isSuspended()) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

@@ -24,7 +24,7 @@ The goal is to make Laravel's model magic explicit: every sensitive field should
 | `email` | auth-sensitive | Owner | `UpdateUser` | yes, if validated | Reset `email_verified_at`; send verification notification. |
 | `email_verified_at` | auth-sensitive | Laravel email verification flow | Verification controller/action | no | Signed verification URL. |
 | `password` | auth-sensitive | Owner or password reset flow | `UpdateUserPassword` / `CreateUserPassword` | no | Require current password or reset token; rely on hashed cast. |
-| `role` | authorization-sensitive | Admin management flow | `UpdateUserRole` | no | Prevent superadmin demotion; authorize caller before use. |
+| `role` | authorization-sensitive | Admin or superadmin | `UpdateUserRole` | no | Only change non-superadmin users; audit log pending. |
 | `suspended_at` | authorization-sensitive | Admin management flow | Dedicated suspend/unsuspend action | no | Block login and active sessions. |
 | `deleted_at` | system-managed | `DeleteUser` | SoftDeletes via `$user->delete()` | no | Prevent superadmin deletion. |
 | `created_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
