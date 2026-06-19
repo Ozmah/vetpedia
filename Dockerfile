@@ -40,4 +40,12 @@ RUN composer install \
     --prefer-dist \
     --optimize-autoloader
 
+# Local Docker must be started through Varlock so Docker Compose receives the
+# decrypted Infisical machine identity values. Running `docker compose up`
+# directly passes literal `varlock("local:...")` strings into the container,
+# which causes Infisical authentication failures.
+#
+# Use:
+#   varlock run -- docker compose up -d --force-recreate
+
 ENTRYPOINT ["bun", "x", "varlock", "run", "--", "sh", "/app/docker/entrypoint.sh"]
