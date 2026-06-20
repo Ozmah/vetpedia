@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Gate;
 
 final readonly class UpdateUserRole
 {
@@ -15,8 +16,7 @@ final readonly class UpdateUserRole
      */
     public function handle(User $actor, User $user, UserRole $role): void
     {
-        throw_unless($actor->isAdmin() || $actor->isSuperadmin(), AuthorizationException::class, 'Only administrators can update user roles.');
-        throw_if($user->isSuperadmin(), AuthorizationException::class, 'Superadmin users cannot have their role changed.');
+        Gate::forUser($actor)->authorize('updateRole', [$user, $role]);
 
         $user->setAttribute('role', $role);
         $user->save();
