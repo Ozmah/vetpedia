@@ -5,13 +5,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:443"
-      - "5173:5173"
     environment:
       INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID:?INFISICAL_PROJECT_ID is required}
       INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID:?INFISICAL_CLIENT_ID is required}
       INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET:?INFISICAL_CLIENT_SECRET is required}
       APP_NAME: ${APP_NAME:-Vetpedia}
       APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
       APP_URL: ${APP_URL:-https://localhost:8000}
     volumes:
       - ./:/app
@@ -27,6 +27,31 @@ services:
     networks:
       - vetpedia
     tty: true
+
+  vite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ["bun", "run", "dev"]
+    ports:
+      - "5173:5173"
+    environment:
+      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID:?INFISICAL_PROJECT_ID is required}
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID:?INFISICAL_CLIENT_ID is required}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET:?INFISICAL_CLIENT_SECRET is required}
+      APP_NAME: ${APP_NAME:-Vetpedia}
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_URL: ${APP_URL:-https://localhost:8000}
+    volumes:
+      - ./:/app
+      - vendor_data:/app/vendor
+      - node_modules_data:/app/node_modules
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - vetpedia
 
   typesense:
     image: typesense/typesense:30.2

@@ -2,13 +2,165 @@
 
 Vetpedia is a Laravel/Inertia application for maintaining and searching structured veterinary knowledge.
 
-## Purpose
+The public search surface must only expose veterinary-approved content. Draft or documented-but-unapproved content may exist internally, but must not appear in normal public search.
 
-Vetpedia stores veterinary knowledge as reviewed, structured records called **entries**.
+## Stack
 
-The public search surface must only expose veterinary-approved content. Draft or documented-but-unapproved content can exist internally, but must not appear in normal public search.
+- Laravel 13 / PHP 8.5
+- Inertia Laravel 3 / React 19 / TypeScript
+- Tailwind CSS v4
+- Fortify
+- Wayfinder
+- SQLite as source of truth
+- Typesense as rebuildable search index
+- FrankenPHP in Docker
+- Varlock + Infisical for environment and secrets
 
-## Core concepts
+## Prerequisites
+
+- Linux or WSL2 is the primary local workflow.
+- Docker for the active Ubuntu distro.
+- Bun installed.
+- Access to the Vetpedia Infisical project if using the recommended setup.
+
+
+Verify Docker is visible:
+
+```bash
+docker version
+```
+
+For Windows users, if Docker is not available, enable it in Docker Desktop:
+
+## Environment setup
+
+Vetpedia uses `.env.schema` as the committed environment contract. Local secrets live in `.env`, which must remain uncommitted.
+
+### Recommended: Varlock + Infisical
+
+Create or request an Infisical Machine Identity with read access to the Vetpedia project and the `local` environment.
+
+Local `.env` should include the Infisical bootstrap values:
+
+```env
+INFISICAL_ENV=local
+INFISICAL_CLIENT_ID=...
+INFISICAL_CLIENT_SECRET=varlock("local:...")
+INFISICAL_PROJECT_ID=varlock("local:...")
+APP_NAME=Vetpedia
+APP_ENV=local
+DB_FILE_PATH=/app-data/vetpedia.sqlite
+```
+
+Use Varlock to encrypt local sensitive values:
+
+```bash
+bunx varlock encrypt --file .env
+```
+
+Validate environment resolution:
+
+```bash
+bun run env:check
+```
+
+Scan for accidentally committed plaintext secrets:
+
+```bash
+bun run secrets:scan
+```
+
+### Required Infisical secrets
+
+Root path `/`:
+
+- `APP_KEY`
+- production-only values such as `APP_URL`, `DB_DATABASE`, and `TYPESENSE_API_KEY` when needed
+
+Path `/seed-users`:
+
+- `VETPEDIA_SUPERADMIN_NAME`
+- `VETPEDIA_SUPERADMIN_EMAIL`
+- `VETPEDIA_SUPERADMIN_PASSWORD`
+- `VETPEDIA_ADMIN_NAME`
+- `VETPEDIA_ADMIN_EMAIL`
+- `VETPEDIA_ADMIN_PASSWORD`
+- `VETPEDIA_DUMMY_USER_PASSWORD`
+
+When reading Infisical secrets from a path, use the explicit default instance form:
+
+```env
+VETPEDIA_SUPERADMIN_NAME=infisical(_default, "VETPEDIA_SUPERADMIN_NAME", "/your-infisical-folder")
+```
+
+Do not use project names, emails, or repo words as passwords. Secret scanners match resolved sensitive values against repository files, so passwords must be random and unique.
+
+### Manual local secrets
+
+If you do not want to use Infisical locally, use direct local secrets only in `.env` and do not commit them. You will need to remove or bypass Infisical resolvers in your local schema/override workflow.
+
+## Running locally
+
+Start Docker through Varlock so Docker Compose receives decrypted values:
+
+```bash
+varlock run -- docker compose up -d --force-recreate
+```
+
+Use `--build` when rebuilding images:
+
+```bash
+varlock run -- docker compose up -d --build --force-recreate
+```
+
+Do not start this project with plain `docker compose up` when `.env` contains `varlock("local:...")` values. Compose would pass the literal encrypted resolver strings into the container, causing Infisical authentication failures.
+
+Local ports:
+
+```txt
+8000  Laravel / FrankenPHP
+5173  Vite HMR
+8108  Typesense
+```
+
+## Common commands
+
+```bash
+bun run env:check      # validate resolved env
+bun run secrets:scan   # scan for plaintext secret leaks
+bun check              # autofix/format/lint through Docker when needed
+bun run shodan         # application tests
+bun run glados         # full pre-push gate
+```
+
+Useful direct container checks:
+
+```bash
+docker compose exec app printenv INFISICAL_CLIENT_ID
+docker compose exec app bunx varlock load
+docker compose exec -T app composer test:app
+docker compose exec -T -u "$(id -u):$(id -g)" app composer test:types
+```
+
+## Seed users
+
+Public registration is closed. Initial users are created by the database seeder.
+
+Seeded real users:
+
+- configured superadmin from `VETPEDIA_SUPERADMIN_*`
+- configured admin from `VETPEDIA_ADMIN_*`
+
+Local/development dummy users:
+
+- 2 dummy admins
+- 10 dummy users
+
+Dummy users are not seeded in production.
+
+Seeders are idempotent and use email as the stable identity. Re-running the seeder updates existing seeded users instead of creating duplicates.
+
+## Domain concepts
 
 ### Entry types
 
@@ -32,101 +184,9 @@ Initial statuses:
 - `vet_approved` — approved for public search
 - `archived` — retired from normal use
 
-Public production search only returns `vet_approved` entries.
+Production public search only returns `vet_approved` entries.
 
-Development may allow searching unapproved entries through:
-
-```txt
-VETPEDIA_ALLOW_UNAPPROVED_SEARCH=true
-```
-
-This flag must default to `false` and must not create production exposure.
-
-## Architecture decisions
-
-### Application stack
-
-- Laravel 13
-- PHP 8.5
-- Inertia Laravel 3
-- React 19
-- TypeScript
-- Tailwind CSS v4
-- Fortify
-- Wayfinder
-- SQLite
-- Typesense
-- FrankenPHP
-- Cloudflare R2 later for backups
-
-### Runtime
-
-The target runtime is FrankenPHP in Docker.
-
-This avoids depending on the host PHP version and allows the app to run with PHP 8.5 even when the local WSL PHP version is older.
-
-Planned local ports:
-
-```txt
-8000  Laravel / FrankenPHP
-5173  Vite HMR
-8108  Typesense
-```
-
-### Database
-
-SQLite is the source of truth.
-
-Typesense is a rebuildable search index, not the source of truth.
-
-Planned SQLite optimization package:
-
-```txt
-nunomaduro/laravel-optimize-database
-```
-
-### Search
-
-Typesense will power search-as-you-type.
-
-Search will be queried through Laravel server-side endpoints. The Typesense admin API key must not be exposed to the browser.
-
-### Actions
-
-The application will follow the starter's action-oriented architecture.
-
-Controllers should stay thin:
-
-```txt
-Routes → Controllers → Form Requests / Policies → Actions → Models
-```
-
-Business mutations should live in Action classes with a `handle()` method.
-
-Multi-model mutations should use transactions.
-
-Mutating domain actions should explicitly write audit events.
-
-### Audit logging
-
-Audit logging is non-negotiable.
-
-The app will record important actions such as:
-
-- entry creation and updates
-- status changes
-- approvals
-- archiving
-- source changes
-- species/catalog changes
-- user changes
-- login and failed-login events
-- search index rebuilds
-- backup events
-
-The logging design will also explore Laravel-compatible wide events / evlog-style structured events.
-
-## Roles
+### Roles
 
 Initial roles:
 
@@ -143,107 +203,51 @@ Rules:
 - `user` cannot create sources, species, catalogs, or users.
 - only `admin` / `superadmin` can move an entry to `vet_approved`.
 
-Public registration is closed.
+## Architecture notes
 
-Initial seeded users:
-
-- Gabriel: `superadmin`
-- Carlos: `admin`
-
-Dummy users will be seeded for permission testing.
-
-## Sources
-
-Entries may have multiple sources.
-
-Sources apply to the whole entry by default. Section-level sources are optional for more granular citation.
-
-Source status is intentionally omitted in v1 to reduce friction.
-
-Admins can create sources. Users can select existing sources but cannot create new ones.
-
-## Internal guide
-
-The system will include an internal guide for contributors.
-
-The guide should explain:
-
-- what an entry is
-- entry statuses
-- sources
-- entry types
-- section templates
-- examples
-- common mistakes
-- how to report missing sections or types
-
-This guide is part of the product, not external marketing copy.
-
-## Public contribution flow
-
-`/contribute` is a later experimental feature.
-
-It is for external contributors without system accounts.
-
-The page will:
-
-- require no login
-- write nothing to the database
-- generate a portable JSON file
-- instruct the contributor to send that file to a real Vetpedia user for review
-
-Clinical contributions are not published automatically.
-
-## Email and 2FA
-
-Email will use Resend.
-
-2FA enforcement is a later phase.
-
-Final rule: every real system user must have 2FA enabled. There should be no normal user-facing flow to disable 2FA.
-
-The first implementation phase keeps starter authentication working without blocking domain work.
-
-## Backups
-
-Backups to Cloudflare R2 are a later operational phase.
-
-SQLite backups must be consistent. The active SQLite file should not be copied directly while in use.
-
-Planned command:
+Controllers should stay thin:
 
 ```txt
-php artisan vetpedia:backup
+Routes → Controllers → Form Requests / Policies → Actions → Models
 ```
 
-## Tooling
+Business mutations should live in Action classes with a `handle()` method.
 
-Planned / expected tooling:
+Multi-model mutations should use transactions.
 
-- Laravel Boost
-- Laravel PAO (`laravel/pao`)
-- Varlock
-- Laravel Moat
-- Pest
-- Larastan / PHPStan
-- Rector
-- Pint
-- Roave Security Advisories
-- Composer audit
+Authorization-sensitive mutations must go through dedicated actions and policies/gates.
 
-## Development status
+Audit logging is planned for important actions such as entry changes, approvals, user changes, login events, search index rebuilds, and backup events.
 
-Current first Linear epic:
+## Search
 
-```txt
-VET-1 Bootstrap Laravel + FrankenPHP runtime
+Typesense powers search-as-you-type. SQLite remains the source of truth.
+
+The Typesense admin API key must not be exposed to the browser. Search should be queried through Laravel server-side endpoints.
+
+## Troubleshooting
+
+### Docker is not available in WSL
+
+Enable Docker Desktop WSL Integration for the active Ubuntu distro, then reopen the WSL terminal.
+
+### Infisical returns 403
+
+The Machine Identity lacks access to the project, environment, or secret path. Grant read access to the correct Infisical project, `INFISICAL_ENV`, `/`, and `/seed-users` as needed.
+
+### Infisical invalid credentials inside Docker
+
+Start Compose through Varlock:
+
+```bash
+varlock run -- docker compose up -d --force-recreate
 ```
 
-Current active first child issue:
+This ensures Compose receives decrypted Infisical credentials instead of literal `varlock("local:...")` strings.
 
-```txt
-VET-2 Add minimal FrankenPHP Caddyfile
-```
+### Full browser tests fail because Playwright is missing
+
+The app test command runs Unit and Feature tests. If you run the complete suite including Browser tests, install Playwright first.
 
 ## License
 
