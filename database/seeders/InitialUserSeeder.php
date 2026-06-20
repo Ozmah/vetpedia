@@ -27,12 +27,12 @@ final class InitialUserSeeder extends Seeder
     private function seedRealUsers(): void
     {
         $this->updateOrCreateUser(
-            config: $this->requiredSeedUserConfig('gabriel'),
+            config: $this->requiredSeedUserConfig('superadmin'),
             role: UserRole::Superadmin,
         );
 
         $this->updateOrCreateUser(
-            config: $this->requiredSeedUserConfig('carlos'),
+            config: $this->requiredSeedUserConfig('admin'),
             role: UserRole::Admin,
         );
     }

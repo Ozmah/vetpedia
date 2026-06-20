@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\Hash;
 
 beforeEach(function (): void {
     config([
-        'vetpedia.seed_users.gabriel' => [
+        'vetpedia.seed_users.superadmin' => [
             'name' => 'Gabriel Alegria',
             'email' => 'gabriel@example.test',
             'password' => 'local-gabriel-password',
         ],
-        'vetpedia.seed_users.carlos' => [
+        'vetpedia.seed_users.admin' => [
             'name' => 'Carlos Admin',
             'email' => 'carlos@example.test',
             'password' => 'local-carlos-password',
