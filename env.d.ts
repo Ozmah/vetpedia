@@ -14,22 +14,20 @@ export type CoercedEnvSchema = {
   INFISICAL_ENV: "local" | "dev" | "production";
   
   /**
-   * **INFISICAL_CLIENT_ID**  
-   * Infisical Machine Identity client ID. Configure directly in local/Railway env.  
+   * **INFISICAL_PROJECT_ID** 🔐 _sensitive_  
+   * Infisical project ID. Store encrypted in local .env.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  INFISICAL_PROJECT_ID: string;
+  
+  /**
+   * **INFISICAL_CLIENT_ID** 🔐 _sensitive_  
+   * Infisical Machine Identity client ID. Store encrypted in local .env.  
    * ![icon](data:image/svg+xml;utf-8,Not%20found)   
    *   
    * 📚 {@link https://infisical.com/docs/documentation/platform/identities/machine-identities | Infisical Machine Identities}  
    */
   INFISICAL_CLIENT_ID: string;
-  
-  /**
-   * **INFISICAL_CLIENT_SECRET** 🔐 _sensitive_  
-   * Infisical Machine Identity client secret. Configure directly in local/Railway env.  
-   * ![icon](data:image/svg+xml;utf-8,Not%20found)   
-   *   
-   * 📚 {@link https://infisical.com/docs/documentation/platform/identities/universal-auth | Infisical Universal Auth}  
-   */
-  INFISICAL_CLIENT_SECRET: string;
   
   /**
    * **APP_NAME**  
@@ -39,10 +37,10 @@ export type CoercedEnvSchema = {
   
   /**
    * **APP_ENV**  
-   * Laravel runtime environment and Infisical environment slug.  
+   * Laravel runtime environment follows the Infisical environment slug.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M7.885%2010.23L12%203.463l4.116%206.769zm9.606%2011q-1.558%200-2.64-1.081t-1.082-2.64t1.082-2.649t2.64-1.09t2.649%201.09t1.09%202.649t-1.09%202.64t-2.649%201.082m-13.722-.5v-6.462h6.462v6.462z%22%2F%3E%3C%2Fsvg%3E)   
    */
-  APP_ENV: "local" | "development" | "production";
+  APP_ENV: "local" | "dev" | "production";
   
   /**
    * **APP_KEY** 🔐 _sensitive_  
@@ -59,7 +57,7 @@ export type CoercedEnvSchema = {
   
   /**
    * **APP_URL**  
-   * Public application URL for URL generation.  
+   * Public application URL.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
    */
   APP_URL: string;
@@ -95,6 +93,18 @@ export type CoercedEnvSchema = {
   BCRYPT_ROUNDS: number;
   
   /**
+   * **HOST_UID**  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M26%2012h-4v2h4v2h-3v2h3v2h-4v2h4a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-7%2010h-6v-4a2%202%200%200%201%202-2h2v-2h-4v-2h4a2%202%200%200%201%202%202v2a2%202%200%200%201-2%202h-2v2h4ZM8%2020v-8H6v1H4v2h2v5H4v2h6v-2z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  HOST_UID: number;
+  
+  /**
+   * **HOST_GID**  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M26%2012h-4v2h4v2h-3v2h3v2h-4v2h4a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-7%2010h-6v-4a2%202%200%200%201%202-2h2v-2h-4v-2h4a2%202%200%200%201%202%202v2a2%202%200%200%201-2%202h-2v2h4ZM8%2020v-8H6v1H4v2h2v5H4v2h6v-2z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  HOST_GID: number;
+  
+  /**
    * **LOG_CHANNEL**  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
@@ -125,15 +135,7 @@ export type CoercedEnvSchema = {
   DB_CONNECTION: string;
   
   /**
-   * **DB_FILE_PATH**  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  DB_FILE_PATH: string;
-  
-  /**
    * **DB_DATABASE**  
-   * SQLite database file path. Local Docker and Railway should mount persistent  
-   * storage at /app-data; production must configure the concrete volume path.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
   DB_DATABASE: string;
@@ -371,19 +373,13 @@ export type CoercedEnvSchema = {
    */
   TYPESENSE_PROTOCOL: string;
   
-  /**
-   * **INFISICAL_PROJECT_ID** 🔐 _sensitive_  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  INFISICAL_PROJECT_ID: string;
-  
 };
 
-type _CoercedEnvSchema_fd859151 = CoercedEnvSchema;
+type _CoercedEnvSchema_a1bf3af0 = CoercedEnvSchema;
 
 declare module 'varlock/env' {
-  export interface TypedEnvSchema extends Readonly<_CoercedEnvSchema_fd859151> {}
-  export interface PublicTypedEnvSchema extends Readonly<Pick<_CoercedEnvSchema_fd859151, 'INFISICAL_ENV' | 'INFISICAL_CLIENT_ID' | 'APP_NAME' | 'APP_ENV' | 'APP_DEBUG' | 'APP_URL' | 'APP_LOCALE' | 'APP_FALLBACK_LOCALE' | 'APP_FAKER_LOCALE' | 'APP_MAINTENANCE_DRIVER' | 'BCRYPT_ROUNDS' | 'LOG_CHANNEL' | 'LOG_STACK' | 'LOG_DEPRECATIONS_CHANNEL' | 'LOG_LEVEL' | 'DB_CONNECTION' | 'DB_FILE_PATH' | 'DB_DATABASE' | 'SESSION_DRIVER' | 'SESSION_LIFETIME' | 'SESSION_ENCRYPT' | 'SESSION_PATH' | 'SESSION_DOMAIN' | 'BROADCAST_CONNECTION' | 'FILESYSTEM_DISK' | 'QUEUE_CONNECTION' | 'CACHE_STORE' | 'MEMCACHED_HOST' | 'REDIS_CLIENT' | 'REDIS_HOST' | 'REDIS_PASSWORD' | 'REDIS_PORT' | 'MAIL_MAILER' | 'MAIL_SCHEME' | 'MAIL_HOST' | 'MAIL_PORT' | 'MAIL_USERNAME' | 'MAIL_PASSWORD' | 'MAIL_FROM_ADDRESS' | 'MAIL_FROM_NAME' | 'VITE_APP_NAME' | 'VITE_SITE_URL' | 'VITE_NO_INDEX' | 'VETPEDIA_ALLOW_UNAPPROVED_SEARCH' | 'SCOUT_DRIVER' | 'TYPESENSE_API_KEY' | 'TYPESENSE_HOST' | 'TYPESENSE_PORT' | 'TYPESENSE_PROTOCOL'>> {}
+  export interface TypedEnvSchema extends Readonly<_CoercedEnvSchema_a1bf3af0> {}
+  export interface PublicTypedEnvSchema extends Readonly<Pick<_CoercedEnvSchema_a1bf3af0, 'INFISICAL_ENV' | 'APP_NAME' | 'APP_ENV' | 'APP_DEBUG' | 'APP_URL' | 'APP_LOCALE' | 'APP_FALLBACK_LOCALE' | 'APP_FAKER_LOCALE' | 'APP_MAINTENANCE_DRIVER' | 'BCRYPT_ROUNDS' | 'HOST_UID' | 'HOST_GID' | 'LOG_CHANNEL' | 'LOG_STACK' | 'LOG_DEPRECATIONS_CHANNEL' | 'LOG_LEVEL' | 'DB_CONNECTION' | 'DB_DATABASE' | 'SESSION_DRIVER' | 'SESSION_LIFETIME' | 'SESSION_ENCRYPT' | 'SESSION_PATH' | 'SESSION_DOMAIN' | 'BROADCAST_CONNECTION' | 'FILESYSTEM_DISK' | 'QUEUE_CONNECTION' | 'CACHE_STORE' | 'MEMCACHED_HOST' | 'REDIS_CLIENT' | 'REDIS_HOST' | 'REDIS_PASSWORD' | 'REDIS_PORT' | 'MAIL_MAILER' | 'MAIL_SCHEME' | 'MAIL_HOST' | 'MAIL_PORT' | 'MAIL_USERNAME' | 'MAIL_PASSWORD' | 'MAIL_FROM_ADDRESS' | 'MAIL_FROM_NAME' | 'VITE_APP_NAME' | 'VITE_SITE_URL' | 'VITE_NO_INDEX' | 'VETPEDIA_ALLOW_UNAPPROVED_SEARCH' | 'SCOUT_DRIVER' | 'TYPESENSE_API_KEY' | 'TYPESENSE_HOST' | 'TYPESENSE_PORT' | 'TYPESENSE_PROTOCOL'>> {}
 }
 
 
@@ -393,17 +389,17 @@ export type EnvSchemaAsStrings = {
       : (CoercedEnvSchema[Property] extends boolean ? ('true' | 'false') : string)
 };
 
-type _EnvSchemaAsStrings_fd859151 = EnvSchemaAsStrings;
+type _EnvSchemaAsStrings_a1bf3af0 = EnvSchemaAsStrings;
 declare global {
 
   // add types for global import.meta.env
-  interface ImportMetaEnv extends _EnvSchemaAsStrings_fd859151 {}
+  interface ImportMetaEnv extends _EnvSchemaAsStrings_a1bf3af0 {}
   interface ImportMeta {
     readonly env: ImportMetaEnv;
   }
 
   // add types for global process.env
   namespace NodeJS {
-    interface ProcessEnv extends _EnvSchemaAsStrings_fd859151 {}
+    interface ProcessEnv extends _EnvSchemaAsStrings_a1bf3af0 {}
   }
 }

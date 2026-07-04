@@ -24,4 +24,5 @@ enum Ability: string
     case UnsuspendUsers = 'unsuspend-users';
     case RunSearchMaintenance = 'run-search-maintenance';
     case RunBackups = 'run-backups';
+    case ViewLocalDatabase = 'view-local-database';
 }
