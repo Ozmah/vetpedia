@@ -2,19 +2,30 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vp build",
-        "build:ssr": "vp build && vp build --ssr",
-        "check": "if [ -f /.dockerenv ]; then composer lint; else docker compose exec -T -u \"$(id -u):$(id -g)\" app composer lint; fi",
-        "dev": "varlock run -- vp dev",
+        "build": "if [ -f /.dockerenv ]; then varlock run -- vp build; else bunx varlock run -- docker compose exec -T app bun run build; fi",
+        "build:ssr": "if [ -f /.dockerenv ]; then varlock run -- vp build && varlock run -- vp build --ssr; else bunx varlock run -- docker compose exec -T app bun run build:ssr; fi",
+        "check": "if [ -f /.dockerenv ]; then composer lint && composer test:app; else bunx varlock run -- docker compose exec -T app bun run check; fi",
+        "dev": "if [ -f /.dockerenv ]; then varlock run -- vp dev; else bunx varlock run -- docker compose exec app bun run dev; fi",
+        "docker:down": "varlock run -- docker compose down",
+        "docker:logs": "varlock run -- docker compose logs -f app",
+        "docker:nuke": "varlock run -- docker compose down -v --remove-orphans",
+        "docker:ps": "varlock run -- docker compose ps",
+        "docker:up": "varlock run -- docker compose up -d --build --remove-orphans",
         "env:check": "varlock load",
-        "glados": "bun run env:check && bun run secrets:scan && composer validate --strict && composer test:lint && composer test:types && bun run build && bun run shodan",
+        "glados": "if [ -f /.dockerenv ]; then bun run env:check && composer validate --strict && composer test:lint && composer test:types && bun run build && composer test:app; else bun run env:check && bun run secrets:scan && bunx varlock run -- docker compose exec -T app bun run glados; fi",
         "secrets:scan": "varlock scan",
-        "shodan": "composer test:app",
+        "secrets:scan:staged": "varlock scan --staged",
+        "shodan": "if [ -f /.dockerenv ]; then composer test:app; else bunx varlock run -- docker compose exec -T app composer test:app; fi",
         "shodan:ci": "composer test:app",
-        "lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint --fix",
+        "lint": "if [ -f /.dockerenv ]; then NODE_OPTIONS='--experimental-strip-types' vp fmt resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint --fix; else bunx varlock run -- docker compose exec -T app bun run lint; fi",
         "prepare": "husky || true",
-        "test:lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt --check resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint",
-        "test:types": "tsc --noEmit"
+        "test:lint": "if [ -f /.dockerenv ]; then NODE_OPTIONS='--experimental-strip-types' vp fmt --check resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint; else bunx varlock run -- docker compose exec -T app bun run test:lint; fi",
+        "test:types": "if [ -f /.dockerenv ]; then tsc --noEmit; else bunx varlock run -- docker compose exec -T app bun run test:types; fi"
+    },
+    "varlock": {
+        "loadPath": [
+            "./"
+        ]
     },
     "devDependencies": {
         "@laravel/vite-plugin-wayfinder": "^0.1.7",
@@ -27,7 +38,6 @@
         "vite-plus": "latest"
     },
     "dependencies": {
-        "@varlock/infisical-plugin": "^1.2.0",
         "@headlessui/react": "^2.2.10",
         "@inertiajs/react": "^3.4.0",
         "@inertiajs/vite": "^3.4.0",
@@ -47,6 +57,7 @@
         "@tailwindcss/vite": "^4.3.1",
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
+        "@varlock/infisical-plugin": "^2.0.1",
         "@vitejs/plugin-react": "^6.0.2",
         "babel-plugin-react-compiler": "^1.0.0",
         "class-variance-authority": "^0.7.1",
@@ -61,7 +72,7 @@
         "tailwindcss": "^4.3.1",
         "tailwindcss-animate": "^1.0.7",
         "typescript": "^6.0.3",
-        "varlock": "^1.7.0"
+        "varlock": "^1.9.0"
     },
     "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.62.0",

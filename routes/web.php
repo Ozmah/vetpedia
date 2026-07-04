@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\Ability;
+use App\Http\Controllers\LocalDatabaseController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
@@ -18,6 +20,19 @@ Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('dashboard', fn () => Inertia::render('dashboard'))->name('dashboard');
 });
+
+if (app()->environment(['local', 'testing'])) {
+    Route::middleware(['auth', 'verified', 'can:'.Ability::ViewLocalDatabase->value])
+        ->prefix('local/database')
+        ->name('local.database.')
+        ->controller(LocalDatabaseController::class)
+        ->group(function (): void {
+            Route::get('/', 'index')->name('index');
+            Route::get('{table}', 'show')
+                ->where('table', '[A-Za-z0-9_]+')
+                ->name('show');
+        });
+}
 
 Route::middleware('auth')->group(function (): void {
     // User...

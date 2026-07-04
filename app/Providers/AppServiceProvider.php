@@ -57,6 +57,7 @@ final class AppServiceProvider extends ServiceProvider
         Gate::define(Ability::UnsuspendUsers->value, [UserPolicy::class, 'unsuspend']);
         Gate::define(Ability::RunSearchMaintenance->value, fn (User $user): bool => $user->isAdmin());
         Gate::define(Ability::RunBackups->value, fn (User $user): bool => false);
+        Gate::define(Ability::ViewLocalDatabase->value, fn (User $user): bool => $user->isSuperadmin());
     }
 
     private function isProtectedUserAbility(string $ability, User $target, mixed $requestedRole): bool

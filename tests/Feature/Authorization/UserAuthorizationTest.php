@@ -15,6 +15,7 @@ it('allows superadmins to use privileged gates except protected user mutations',
 
     expect(Gate::forUser($superadmin)->allows(Ability::CreateAdmins->value))->toBeTrue()
         ->and(Gate::forUser($superadmin)->allows(Ability::RunBackups->value))->toBeTrue()
+        ->and(Gate::forUser($superadmin)->allows(Ability::ViewLocalDatabase->value))->toBeTrue()
         ->and(Gate::forUser($superadmin)->allows('updateRole', [$admin, UserRole::User]))->toBeTrue()
         ->and(Gate::forUser($superadmin)->allows('updateRole', [$normalUser, UserRole::Admin]))->toBeTrue()
         ->and(Gate::forUser($superadmin)->denies('updateRole', [$normalUser, UserRole::Superadmin]))->toBeTrue()
@@ -42,6 +43,7 @@ it('allows admins to manage domain content and normal users only', function (): 
         ->and(Gate::forUser($admin)->denies(Ability::CreateAdmins->value))->toBeTrue()
         ->and(Gate::forUser($admin)->denies(Ability::ManageAdmins->value))->toBeTrue()
         ->and(Gate::forUser($admin)->denies(Ability::RunBackups->value))->toBeTrue()
+        ->and(Gate::forUser($admin)->denies(Ability::ViewLocalDatabase->value))->toBeTrue()
         ->and(Gate::forUser($admin)->denies('view', $otherAdmin))->toBeTrue()
         ->and(Gate::forUser($admin)->denies('update', $otherAdmin))->toBeTrue()
         ->and(Gate::forUser($admin)->denies('delete', $otherAdmin))->toBeTrue()
@@ -62,7 +64,8 @@ it('allows users to work only with non-approved entry capabilities', function ()
         ->and(Gate::forUser($user)->denies(Ability::ManageSpecies->value))->toBeTrue()
         ->and(Gate::forUser($user)->denies(Ability::ManageCatalogs->value))->toBeTrue()
         ->and(Gate::forUser($user)->denies(Ability::ViewUsers->value))->toBeTrue()
-        ->and(Gate::forUser($user)->denies(Ability::RunBackups->value))->toBeTrue();
+        ->and(Gate::forUser($user)->denies(Ability::RunBackups->value))->toBeTrue()
+        ->and(Gate::forUser($user)->denies(Ability::ViewLocalDatabase->value))->toBeTrue();
 });
 
 it('denies authorization gates for suspended users regardless of role', function (): void {
@@ -71,5 +74,6 @@ it('denies authorization gates for suspended users regardless of role', function
 
     expect(Gate::forUser($admin)->denies(Ability::AccessInternal->value))->toBeTrue()
         ->and(Gate::forUser($admin)->denies(Ability::ManageCatalogs->value))->toBeTrue()
-        ->and(Gate::forUser($superadmin)->denies(Ability::RunBackups->value))->toBeTrue();
+        ->and(Gate::forUser($superadmin)->denies(Ability::RunBackups->value))->toBeTrue()
+        ->and(Gate::forUser($superadmin)->denies(Ability::ViewLocalDatabase->value))->toBeTrue();
 });

@@ -1,17 +1,19 @@
 #!/usr/bin/env sh
+
 set -eu
 
-if [ -z "${DB_DATABASE:-}" ]; then
-    echo "DB_DATABASE is required."
-    exit 1
+if [ "${DB_CONNECTION:-sqlite}" = "sqlite" ]; then
+    database_path="${DB_DATABASE:-/app-data/vetpedia.sqlite}"
+
+    mkdir -p "$(dirname "$database_path")"
+
+    if [ ! -f "$database_path" ]; then
+        touch "$database_path"
+    fi
 fi
 
-mkdir -p "$(dirname "$DB_DATABASE")"
-
-if [ ! -f "$DB_DATABASE" ]; then
-    touch "$DB_DATABASE"
+if [ "${VETPEDIA_RUN_MIGRATIONS:-true}" = "true" ]; then
+    php artisan migrate --force
 fi
 
-php artisan migrate --force
-
-exec frankenphp run --config /app/Caddyfile
+exec frankenphp run --config /etc/caddy/Caddyfile

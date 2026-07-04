@@ -1,12 +1,6 @@
-DOCKER_USER="$(id -u):$(id -g)"
-
-docker compose exec -T app mkdir -p /app/node_modules/.vite-temp
-docker compose exec -T app chown -R "$DOCKER_USER" /app/storage /app/bootstrap/cache /app/database /app/public/build /app/vendor/pestphp/pest/.temp 2>/dev/null || true
-docker compose exec -T app chown -R "$DOCKER_USER" /app/node_modules/.vite-temp 2>/dev/null || true
-
-docker compose exec -T -u "$DOCKER_USER" app bun run env:check
-docker compose exec -T -u "$DOCKER_USER" app bun run secrets:scan
-docker compose exec -T -u "$DOCKER_USER" app bun run check
+bun run env:check
+bun run secrets:scan
+bun run check
 
 if [ -n "$(git diff)" ] || [ -n "$(git ls-files --others --exclude-standard)" ]; then
   exec < /dev/tty
