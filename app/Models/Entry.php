@@ -9,6 +9,7 @@ use App\Enums\EntryType;
 use Carbon\CarbonInterface;
 use Database\Factories\EntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -114,7 +115,8 @@ final class Entry extends Model
     /**
      * @param  Builder<Entry>  $query
      */
-    protected function scopeActive(Builder $query): void
+    #[Scope]
+    protected function active(Builder $query): void
     {
         $query->whereNull('archived_at');
     }
@@ -122,7 +124,8 @@ final class Entry extends Model
     /**
      * @param  Builder<Entry>  $query
      */
-    protected function scopeArchived(Builder $query): void
+    #[Scope]
+    protected function archived(Builder $query): void
     {
         $query->whereNotNull('archived_at');
     }
@@ -130,7 +133,8 @@ final class Entry extends Model
     /**
      * @param  Builder<Entry>  $query
      */
-    protected function scopeApproved(Builder $query): void
+    #[Scope]
+    protected function approved(Builder $query): void
     {
         $query->where('status', EntryStatus::VetApproved->value)
             ->whereNotNull('approved_by')
@@ -140,7 +144,8 @@ final class Entry extends Model
     /**
      * @param  Builder<Entry>  $query
      */
-    protected function scopeStatus(Builder $query, EntryStatus $status): void
+    #[Scope]
+    protected function status(Builder $query, EntryStatus $status): void
     {
         $query->where('status', $status->value);
     }
@@ -148,7 +153,8 @@ final class Entry extends Model
     /**
      * @param  Builder<Entry>  $query
      */
-    protected function scopeType(Builder $query, EntryType $type): void
+    #[Scope]
+    protected function type(Builder $query, EntryType $type): void
     {
         $query->where('type', $type->value);
     }
