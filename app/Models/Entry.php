@@ -11,10 +11,12 @@ use Database\Factories\EntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property-read string $id
@@ -34,6 +36,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read User $createdBy
  * @property-read User|null $updatedBy
  * @property-read User|null $approvedBy
+ * @property-read Collection<int, EntrySection> $sections
+ * @property-read Collection<int, EntryAlias> $aliases
  */
 #[Fillable([
     'type',
@@ -100,6 +104,22 @@ final class Entry extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * @return HasMany<EntrySection, $this>
+     */
+    public function sections(): HasMany
+    {
+        return $this->hasMany(EntrySection::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * @return HasMany<EntryAlias, $this>
+     */
+    public function aliases(): HasMany
+    {
+        return $this->hasMany(EntryAlias::class);
     }
 
     public function isApproved(): bool

@@ -29,6 +29,30 @@ The goal is to make Laravel's model magic explicit: every sensitive field should
 | `deleted_at` | system-managed | `DeleteUser` | SoftDeletes via `$user->delete()` | no | Prevent superadmin deletion. |
 | `created_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
 | `updated_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
+
+## EntrySection
+
+| Field | Classification | Who may change it | Mutation path | Mass assignment | Required rules |
+|---|---|---|---|---|---|
+| `id` | system-managed | Laravel | `HasUuids` / model creation | no | Never manually mutate. |
+| `entry_id` | relationship | Entry section creation flow | No app write path yet | yes, if validated | Must reference an existing entry; cascades when entry is deleted. |
+| `key` | domain data | Entry section creation/edit flow | No app write path yet | yes, if validated | Required; unique per entry; semantic key only, templates pending VET-20. |
+| `title` | domain data | Entry section creation/edit flow | No app write path yet | yes, if validated | Required; sanitize/validate at request boundary. |
+| `body` | domain data | Entry section creation/edit flow | No app write path yet | yes, if validated | Required; sanitize/validate at request boundary. |
+| `sort_order` | domain data | Entry section creation/edit flow | No app write path yet | yes, if validated | Required integer; entry relationship orders by this field. |
+| `created_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
+| `updated_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
+
+## EntryAlias
+
+| Field | Classification | Who may change it | Mutation path | Mass assignment | Required rules |
+|---|---|---|---|---|---|
+| `id` | system-managed | Laravel | `HasUuids` / model creation | no | Never manually mutate. |
+| `entry_id` | relationship | Entry alias creation flow | No app write path yet | yes, if validated | Must reference an existing entry; cascades when entry is deleted. |
+| `name` | domain data | Entry alias creation/edit flow | No app write path yet | yes, if validated | Required; sanitize/validate at request boundary. |
+| `normalized_name` | search/deduplication | System | `NormalizeEntryAliasName` | no | Required; unique per entry; lowercased, ASCII-folded, whitespace-squished. |
+| `created_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
+| `updated_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
 | `remember_token` | auth-sensitive | Laravel auth | Remember-me flow | framework only | Hidden from serialization. |
 | `two_factor_secret` | auth-sensitive | Fortify | Fortify 2FA flow | framework only | Hidden from serialization. |
 | `two_factor_recovery_codes` | auth-sensitive | Fortify | Fortify 2FA flow | framework only | Hidden from serialization. |
