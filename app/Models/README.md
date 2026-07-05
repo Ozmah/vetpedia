@@ -33,3 +33,22 @@ The goal is to make Laravel's model magic explicit: every sensitive field should
 | `two_factor_secret` | auth-sensitive | Fortify | Fortify 2FA flow | framework only | Hidden from serialization. |
 | `two_factor_recovery_codes` | auth-sensitive | Fortify | Fortify 2FA flow | framework only | Hidden from serialization. |
 | `two_factor_confirmed_at` | auth-sensitive | Fortify | Fortify 2FA flow | framework only | Hidden from serialization. |
+
+## Entry
+
+| Field | Classification | Who may change it | Mutation path | Mass assignment | Required rules |
+|---|---|---|---|---|---|
+| `id` | system-managed | Laravel | `HasUuids` / model creation | no | Never manually mutate. |
+| `type` | domain data | Entry creation/edit flow | No app write path yet | yes, if validated | Must be an `EntryType` value. |
+| `status` | authorization-sensitive | Review workflow | Dedicated review/approval actions required | no | Must be an `EntryStatus` value; audit log pending. |
+| `title` | domain data | Entry creation/edit flow | No app write path yet | yes, if validated | Required; regenerate slug through `GenerateUniqueEntrySlug` when appropriate. |
+| `slug` | domain data | System | `GenerateUniqueEntrySlug` | no | Globally unique; collision-safe suffix strategy. |
+| `summary` | domain data | Entry creation/edit flow | No app write path yet | yes, if validated | Optional; sanitize/validate at request boundary. |
+| `warnings` | domain data | Entry creation/edit flow | No app write path yet | yes, if validated | Optional; sanitize/validate at request boundary. |
+| `created_by` | audit/compliance | System | Entry creation action required | no | Must reference creator user; audit log pending. |
+| `updated_by` | audit/compliance | System | Entry update action required | no | Must reference last updater when app write paths exist. |
+| `approved_by` | audit/compliance | Review workflow | Dedicated approval action required | no | Required with `vet_approved`; audit log pending. |
+| `approved_at` | authorization-sensitive | Review workflow | Dedicated approval action required | no | Required with `vet_approved`; audit log pending. |
+| `archived_at` | authorization-sensitive | Review/admin workflow | Dedicated archive/unarchive action required | no | Active lists must exclude archived entries. |
+| `created_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
+| `updated_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
