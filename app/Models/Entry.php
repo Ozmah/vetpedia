@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -38,6 +39,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User|null $approvedBy
  * @property-read Collection<int, EntrySection> $sections
  * @property-read Collection<int, EntryAlias> $aliases
+ * @property-read Collection<int, Species> $species
  */
 #[Fillable([
     'type',
@@ -120,6 +122,14 @@ final class Entry extends Model
     public function aliases(): HasMany
     {
         return $this->hasMany(EntryAlias::class);
+    }
+
+    /**
+     * @return BelongsToMany<Species, $this>
+     */
+    public function species(): BelongsToMany
+    {
+        return $this->belongsToMany(Species::class, 'entry_species')->withTimestamps();
     }
 
     public function isApproved(): bool

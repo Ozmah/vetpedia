@@ -96,3 +96,22 @@ The goal is to make Laravel's model magic explicit: every sensitive field should
 | `created_by` | audit/compliance | System | Source creation action required | no | Must reference creator user; audit log pending. |
 | `created_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
 | `updated_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
+
+## Species
+
+| Field | Classification | Who may change it | Mutation path | Mass assignment | Required rules |
+|---|---|---|---|---|---|
+| `id` | system-managed | Laravel | `HasUuids` / model creation | no | Never manually mutate. |
+| `name` | catalog data | Species catalog admin flow | `InitialSpeciesSeeder` / no app write path yet | yes, if validated | Required; unique; initial values are `Gatos` and `Perros`. |
+| `slug` | catalog data | System/admin catalog flow | `InitialSpeciesSeeder` / slug generation required for app writes | yes, if validated/generated | Required; unique; stable identifier for forms/search. |
+| `created_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
+| `updated_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
+
+## EntrySpecies
+
+| Field | Classification | Who may change it | Mutation path | Mass assignment | Required rules |
+|---|---|---|---|---|---|
+| `entry_id` | relationship | Entry species selection flow | No app write path yet | relationship only | Must reference an existing entry; cascades when entry is deleted. |
+| `species_id` | relationship | Entry species selection flow | No app write path yet | relationship only | Must reference an existing species; restricted while in use. |
+| `created_at` | system-managed | Laravel | Pivot timestamps | no | Automatic through `withTimestamps()`. |
+| `updated_at` | system-managed | Laravel | Pivot timestamps | no | Automatic through `withTimestamps()`. |
