@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * @property-read string $id
@@ -40,6 +41,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<int, EntrySection> $sections
  * @property-read Collection<int, EntryAlias> $aliases
  * @property-read Collection<int, Species> $species
+ * @property-read Collection<int, Source> $sources
  */
 #[Fillable([
     'type',
@@ -130,6 +132,17 @@ final class Entry extends Model
     public function species(): BelongsToMany
     {
         return $this->belongsToMany(Species::class, 'entry_species')->withTimestamps();
+    }
+
+    /**
+     * @return BelongsToMany<Source, $this, Pivot, 'citation'>
+     */
+    public function sources(): BelongsToMany
+    {
+        return $this->belongsToMany(Source::class, 'entry_sources')
+            ->as('citation')
+            ->withPivot(['locator', 'note', 'created_by'])
+            ->withTimestamps();
     }
 
     public function isApproved(): bool

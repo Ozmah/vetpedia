@@ -8,10 +8,13 @@ use App\Enums\SourceType;
 use Carbon\CarbonInterface;
 use Database\Factories\SourceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * @property-read string $id
@@ -30,6 +33,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  * @property-read User $createdBy
+ * @property-read Collection<int, Entry> $entries
+ * @property-read Collection<int, EntrySection> $entrySections
  */
 #[Fillable([
     'type',
@@ -81,5 +86,27 @@ final class Source extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * @return BelongsToMany<Entry, $this, Pivot, 'citation'>
+     */
+    public function entries(): BelongsToMany
+    {
+        return $this->belongsToMany(Entry::class, 'entry_sources')
+            ->as('citation')
+            ->withPivot(['locator', 'note', 'created_by'])
+            ->withTimestamps();
+    }
+
+    /**
+     * @return BelongsToMany<EntrySection, $this, Pivot, 'citation'>
+     */
+    public function entrySections(): BelongsToMany
+    {
+        return $this->belongsToMany(EntrySection::class, 'section_sources')
+            ->as('citation')
+            ->withPivot(['locator', 'note', 'created_by'])
+            ->withTimestamps();
     }
 }

@@ -115,3 +115,27 @@ The goal is to make Laravel's model magic explicit: every sensitive field should
 | `species_id` | relationship | Entry species selection flow | No app write path yet | relationship only | Must reference an existing species; restricted while in use. |
 | `created_at` | system-managed | Laravel | Pivot timestamps | no | Automatic through `withTimestamps()`. |
 | `updated_at` | system-managed | Laravel | Pivot timestamps | no | Automatic through `withTimestamps()`. |
+
+## EntrySource
+
+| Field | Classification | Who may change it | Mutation path | Mass assignment | Required rules |
+|---|---|---|---|---|---|
+| `entry_id` | relationship | Entry source citation flow | No app write path yet | relationship only | Must reference an existing entry; cascades when entry is deleted. |
+| `source_id` | relationship | Entry source citation flow | No app write path yet | relationship only | Must reference an existing source; restricted while in use. |
+| `locator` | citation metadata | Entry source citation flow | No app write path yet | relationship only | Optional flexible locator such as `p. 245`, `pp. 245-247`, `cap. 12`, or `tabla 4.3`. |
+| `note` | citation metadata | Entry source citation flow | No app write path yet | relationship only | Optional internal/contextual note; sanitize/validate at request boundary. |
+| `created_by` | audit/compliance | System | Entry source attach action required | relationship only | Must reference creator user; audit log pending. |
+| `created_at` | system-managed | Laravel | Pivot timestamps | no | Automatic through `withTimestamps()`. |
+| `updated_at` | system-managed | Laravel | Pivot timestamps | no | Automatic through `withTimestamps()`. |
+
+## SectionSource
+
+| Field | Classification | Who may change it | Mutation path | Mass assignment | Required rules |
+|---|---|---|---|---|---|
+| `entry_section_id` | relationship | Section source citation flow | No app write path yet | relationship only | Must reference an existing entry section; cascades when section is deleted. |
+| `source_id` | relationship | Section source citation flow | No app write path yet | relationship only | Must reference an existing source; restricted while in use. |
+| `locator` | citation metadata | Section source citation flow | No app write path yet | relationship only | Optional flexible locator such as `p. 245`, `pp. 245-247`, `cap. 12`, or `tabla 4.3`. |
+| `note` | citation metadata | Section source citation flow | No app write path yet | relationship only | Optional internal/contextual note; sanitize/validate at request boundary. |
+| `created_by` | audit/compliance | System | Section source attach action required | relationship only | Must reference creator user; audit log pending. |
+| `created_at` | system-managed | Laravel | Pivot timestamps | no | Automatic through `withTimestamps()`. |
+| `updated_at` | system-managed | Laravel | Pivot timestamps | no | Automatic through `withTimestamps()`. |
