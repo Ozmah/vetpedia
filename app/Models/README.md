@@ -34,6 +34,22 @@ The goal is to make Laravel's model magic explicit: every sensitive field should
 | `created_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
 | `updated_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
 
+## AuditEvent
+
+| Field | Classification | Who may change it | Mutation path | Mass assignment | Required rules |
+|---|---|---|---|---|---|
+| `id` | system-managed | Laravel | `HasUuids` / model creation | no | Never manually mutate. |
+| `actor_id` | audit/compliance | System | `LogAuditEvent` action required | yes, through action only | Nullable for anonymous/system events; reference users when available. |
+| `action` | audit/compliance | System | `LogAuditEvent` action required | yes, through action only | Required stable event name such as `entry.created` or `auth.failed_login`. |
+| `subject_type` | audit/compliance | System | `LogAuditEvent` action required | yes, through action only | Optional model class or operational category such as `auth`, `search`, or `backup`. |
+| `subject_id` | audit/compliance | System | `LogAuditEvent` action required | yes, through action only | Optional UUID of the affected subject when one exists. |
+| `summary` | audit/compliance | System | `LogAuditEvent` action required | yes, through action only | Required human-readable summary; do not include secrets, tokens, passwords, or unnecessary clinical details. |
+| `before` | audit/compliance | System | `LogAuditEvent` action required | yes, through action only | Optional structured JSON snapshot; minimize sensitive data. |
+| `after` | audit/compliance | System | `LogAuditEvent` action required | yes, through action only | Optional structured JSON snapshot; minimize sensitive data. |
+| `ip_address` | security metadata | System | `LogAuditEvent` action required | yes, through action only | Optional request IP; never trust it for authorization decisions. |
+| `user_agent` | security metadata | System | `LogAuditEvent` action required | yes, through action only | Optional request user agent; informational only. |
+| `created_at` | system-managed | Laravel | Eloquent timestamp / database default | no | Append-oriented event time; events have no `updated_at`. |
+
 ## Entry
 
 | Field | Classification | Who may change it | Mutation path | Mass assignment | Required rules |
