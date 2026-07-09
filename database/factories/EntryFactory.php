@@ -27,7 +27,7 @@ final class EntryFactory extends Factory
 
         return [
             'type' => fake()->randomElement(EntryType::cases()),
-            'status' => EntryStatus::Raw,
+            'status' => EntryStatus::Draft,
             'title' => $title,
             'slug' => resolve(GenerateUniqueEntrySlug::class)->handle($title),
             'summary' => fake()->sentence(),
