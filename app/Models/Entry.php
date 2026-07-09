@@ -60,7 +60,7 @@ final class Entry extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => 'raw',
+        'status' => 'draft',
     ];
 
     /**
