@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Enums\Ability;
 use App\Enums\EntryStatus;
 use App\Enums\EntryType;
 use App\Exceptions\InvalidEntryTransition;
@@ -33,11 +32,7 @@ final readonly class UpdateEntry
         return DB::transaction(function () use ($actor, $entry, $attributes): Entry {
             $entry = Entry::query()->lockForUpdate()->findOrFail($entry->id);
 
-            $ability = $entry->isApproved()
-                ? Ability::ManageApprovedEntries
-                : Ability::ManageUnapprovedEntries;
-
-            Gate::forUser($actor)->authorize($ability->value);
+            Gate::forUser($actor)->authorize('update', $entry);
 
             throw_if($entry->isArchived(), InvalidEntryTransition::class, 'Archived entries cannot be edited.');
 

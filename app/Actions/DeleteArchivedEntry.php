@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Enums\Ability;
 use App\Exceptions\InvalidEntryTransition;
 use App\Models\Entry;
 use App\Models\User;
@@ -20,7 +19,7 @@ final readonly class DeleteArchivedEntry
 
     public function handle(User $actor, Entry $entry, bool $confirmed): void
     {
-        Gate::forUser($actor)->authorize(Ability::ArchiveEntries->value);
+        Gate::forUser($actor)->authorize('forceDelete', $entry);
 
         throw_unless($confirmed, InvalidEntryTransition::class, 'Permanent entry deletion requires explicit confirmation.');
 

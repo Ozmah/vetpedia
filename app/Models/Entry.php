@@ -6,10 +6,12 @@ namespace App\Models;
 
 use App\Enums\EntryStatus;
 use App\Enums\EntryType;
+use App\Policies\EntryPolicy;
 use Carbon\CarbonInterface;
 use Database\Factories\EntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -43,6 +45,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  * @property-read Collection<int, Species> $species
  * @property-read Collection<int, Source> $sources
  */
+#[UsePolicy(EntryPolicy::class)]
 #[Fillable([
     'type',
     'title',

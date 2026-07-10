@@ -20,6 +20,7 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Global authorization rules
         Gate::before(function (User $user, string $ability, mixed $arguments = null): ?bool {
             if ($user->isSuspended()) {
                 return false;
@@ -39,15 +40,22 @@ final class AppServiceProvider extends ServiceProvider
             return null;
         });
 
+        // Global access
         Gate::define(Ability::AccessInternal->value, fn (User $user): bool => true);
+
+        // Entries
         Gate::define(Ability::CreateEntries->value, fn (User $user): bool => true);
         Gate::define(Ability::ManageUnapprovedEntries->value, fn (User $user): bool => true);
         Gate::define(Ability::ManageApprovedEntries->value, fn (User $user): bool => $user->isAdmin());
         Gate::define(Ability::ApproveEntries->value, fn (User $user): bool => $user->isAdmin());
         Gate::define(Ability::ArchiveEntries->value, fn (User $user): bool => $user->isAdmin());
+
+        // Catalogs
         Gate::define(Ability::ManageSources->value, fn (User $user): bool => $user->isAdmin());
         Gate::define(Ability::ManageSpecies->value, fn (User $user): bool => $user->isAdmin());
         Gate::define(Ability::ManageCatalogs->value, fn (User $user): bool => $user->isAdmin());
+
+        // Users
         Gate::define(Ability::ViewUsers->value, fn (User $user): bool => $user->isAdmin());
         Gate::define(Ability::CreateUsers->value, fn (User $user): bool => $user->isAdmin());
         Gate::define(Ability::CreateAdmins->value, [UserPolicy::class, 'createAdmin']);
@@ -55,8 +63,12 @@ final class AppServiceProvider extends ServiceProvider
         Gate::define(Ability::ManageAdmins->value, fn (User $user): bool => false);
         Gate::define(Ability::SuspendUsers->value, [UserPolicy::class, 'suspend']);
         Gate::define(Ability::UnsuspendUsers->value, [UserPolicy::class, 'unsuspend']);
+
+        // Operations
         Gate::define(Ability::RunSearchMaintenance->value, fn (User $user): bool => $user->isAdmin());
         Gate::define(Ability::RunBackups->value, fn (User $user): bool => false);
+
+        // Local development
         Gate::define(Ability::ViewLocalDatabase->value, fn (User $user): bool => $user->isSuperadmin());
     }
 
