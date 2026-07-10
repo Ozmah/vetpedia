@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Enums\Ability;
 use App\Enums\EntryStatus;
 use App\Exceptions\InvalidEntryTransition;
 use App\Models\Entry;
@@ -21,7 +20,7 @@ final readonly class ApproveEntry
 
     public function handle(User $actor, Entry $entry): Entry
     {
-        Gate::forUser($actor)->authorize(Ability::ApproveEntries->value);
+        Gate::forUser($actor)->authorize('approve', $entry);
 
         return DB::transaction(function () use ($actor, $entry): Entry {
             $entry = Entry::query()->lockForUpdate()->findOrFail($entry->id);

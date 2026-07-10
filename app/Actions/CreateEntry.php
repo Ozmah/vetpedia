@@ -11,6 +11,7 @@ use App\Models\EntryAlias;
 use App\Models\EntrySection;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 final readonly class CreateEntry
 {
@@ -27,6 +28,8 @@ final readonly class CreateEntry
      */
     public function handle(User $actor, array $attributes): Entry
     {
+        Gate::forUser($actor)->authorize('create', Entry::class);
+
         return DB::transaction(function () use ($actor, $attributes): Entry {
             $entry = new Entry();
             $entry->setAttribute('type', $this->entryType($attributes['type']));

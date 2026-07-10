@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Enums\Ability;
 use App\Exceptions\InvalidEntryTransition;
 use App\Models\Entry;
 use App\Models\User;
@@ -20,7 +19,7 @@ final readonly class RestoreArchivedEntry
 
     public function handle(User $actor, Entry $entry): Entry
     {
-        Gate::forUser($actor)->authorize(Ability::ArchiveEntries->value);
+        Gate::forUser($actor)->authorize('restore', $entry);
 
         return DB::transaction(function () use ($actor, $entry): Entry {
             $entry = Entry::query()->lockForUpdate()->findOrFail($entry->id);
