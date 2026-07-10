@@ -56,16 +56,16 @@ The goal is to make Laravel's model magic explicit: every sensitive field should
 |---|---|---|---|---|---|
 | `id` | system-managed | Laravel | `HasUuids` / model creation | no | Never manually mutate. |
 | `type` | domain data | Entry creation/edit flow | `CreateEntry` / `UpdateEntry` | yes, if validated | Must be an `EntryType` value. |
-| `status` | authorization-sensitive | Entry source state / review workflow | `CreateEntry` / `UpdateEntry`; approval action required | no | Auto-derived as `draft` or `documented`; `vet_approved` must only come from approval flow; audit required. |
+| `status` | authorization-sensitive | Entry source state / review workflow | `CreateEntry` / `UpdateEntry` / `ApproveEntry` | no | Auto-derived as `draft` or `documented`; only admins/superadmins may set `vet_approved`; audit required. |
 | `title` | domain data | Entry creation/edit flow | `CreateEntry` / `UpdateEntry` | yes, if validated | Required; regenerate slug through `GenerateUniqueEntrySlug` when appropriate. |
 | `slug` | domain data | System | `GenerateUniqueEntrySlug` | no | Globally unique; collision-safe suffix strategy. |
 | `summary` | domain data | Entry creation/edit flow | `CreateEntry` / `UpdateEntry` | yes, if validated | Optional; sanitize/validate at request boundary. |
 | `warnings` | domain data | Entry creation/edit flow | `CreateEntry` / `UpdateEntry` | yes, if validated | Optional; sanitize/validate at request boundary. |
 | `created_by` | audit/compliance | System | `CreateEntry` | no | Must reference creator user; audit required. |
 | `updated_by` | audit/compliance | System | `UpdateEntry` | no | Must reference last updater; audit required. |
-| `approved_by` | audit/compliance | Review workflow | Dedicated approval action required | no | Required with `vet_approved`; audit log pending. |
-| `approved_at` | authorization-sensitive | Review workflow | Dedicated approval action required | no | Required with `vet_approved`; audit log pending. |
-| `archived_at` | authorization-sensitive | Review/admin workflow | Dedicated archive/unarchive action required | no | Active lists must exclude archived entries. |
+| `approved_by` | audit/compliance | Review workflow | `ApproveEntry` | no | Required with `vet_approved`; only admins/superadmins; audit required. |
+| `approved_at` | authorization-sensitive | Review workflow | `ApproveEntry` | no | Required with `vet_approved`; only documented, active entries may be approved. |
+| `archived_at` | authorization-sensitive | Review/admin workflow | `ArchiveEntry` / `RestoreArchivedEntry` | no | Only admins/superadmins; active lists must exclude archived entries; audit required. |
 | `created_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
 | `updated_at` | system-managed | Laravel | Eloquent timestamps | no | Automatic. |
 

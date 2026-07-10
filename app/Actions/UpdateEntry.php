@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Enums\Ability;
 use App\Enums\EntryStatus;
 use App\Enums\EntryType;
+use App\Exceptions\InvalidEntryTransition;
 use App\Models\Entry;
 use App\Models\EntryAlias;
 use App\Models\EntrySection;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 final readonly class UpdateEntry
 {
@@ -28,6 +31,16 @@ final readonly class UpdateEntry
     public function handle(User $actor, Entry $entry, array $attributes): Entry
     {
         return DB::transaction(function () use ($actor, $entry, $attributes): Entry {
+            $entry = Entry::query()->lockForUpdate()->findOrFail($entry->id);
+
+            $ability = $entry->isApproved()
+                ? Ability::ManageApprovedEntries
+                : Ability::ManageUnapprovedEntries;
+
+            Gate::forUser($actor)->authorize($ability->value);
+
+            throw_if($entry->isArchived(), InvalidEntryTransition::class, 'Archived entries cannot be edited.');
+
             $entry->load(['aliases', 'sections.sources', 'sources', 'species']);
             $before = $this->auditSnapshot($entry);
 
@@ -95,6 +108,10 @@ final readonly class UpdateEntry
      */
     private function statusFor(array $attributes, Entry $entry): EntryStatus
     {
+        if ($entry->isApproved()) {
+            return EntryStatus::VetApproved;
+        }
+
         return $this->hasSources($attributes, $entry) ? EntryStatus::Documented : EntryStatus::Draft;
     }
 
