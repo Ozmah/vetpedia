@@ -3,7 +3,7 @@ import { Database } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -109,31 +109,29 @@ export default function LocalDatabase({ tables, selectedTable }: Props) {
                         </CardHeader>
                         <CardContent className="flex flex-col gap-2">
                             {tables.map((table) => (
-                                <Button
+                                <Link
                                     key={table.name}
-                                    asChild
-                                    variant={
-                                        selectedTable?.name === table.name
-                                            ? 'secondary'
-                                            : 'ghost'
-                                    }
-                                    className="h-auto justify-start px-3 py-2"
+                                    href={show({ table: table.name })}
+                                    prefetch
+                                    className={buttonVariants({
+                                        variant:
+                                            selectedTable?.name === table.name
+                                                ? 'secondary'
+                                                : 'ghost',
+                                        className:
+                                            'h-auto justify-start px-3 py-2',
+                                    })}
                                 >
-                                    <Link
-                                        href={show({ table: table.name })}
-                                        prefetch
-                                    >
-                                        <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
-                                            <span className="truncate font-medium">
-                                                {table.name}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {table.column_count} columns ·{' '}
-                                                {table.record_count} rows
-                                            </span>
+                                    <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
+                                        <span className="truncate font-medium">
+                                            {table.name}
                                         </span>
-                                    </Link>
-                                </Button>
+                                        <span className="text-xs text-muted-foreground">
+                                            {table.column_count} columns ·{' '}
+                                            {table.record_count} rows
+                                        </span>
+                                    </span>
+                                </Link>
                             ))}
                         </CardContent>
                     </Card>
@@ -319,22 +317,30 @@ function RecordsPanel({ table }: { table: SelectedTable }) {
                     </p>
                     <div className="flex gap-2">
                         {table.records.prev_page_url ? (
-                            <Button asChild variant="outline" size="sm">
-                                <Link href={table.records.prev_page_url}>
-                                    Previous
-                                </Link>
-                            </Button>
+                            <Link
+                                href={table.records.prev_page_url}
+                                className={buttonVariants({
+                                    variant: 'outline',
+                                    size: 'sm',
+                                })}
+                            >
+                                Previous
+                            </Link>
                         ) : (
                             <Button variant="outline" size="sm" disabled>
                                 Previous
                             </Button>
                         )}
                         {table.records.next_page_url ? (
-                            <Button asChild variant="outline" size="sm">
-                                <Link href={table.records.next_page_url}>
-                                    Next
-                                </Link>
-                            </Button>
+                            <Link
+                                href={table.records.next_page_url}
+                                className={buttonVariants({
+                                    variant: 'outline',
+                                    size: 'sm',
+                                })}
+                            >
+                                Next
+                            </Link>
                         ) : (
                             <Button variant="outline" size="sm" disabled>
                                 Next
