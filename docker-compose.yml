@@ -72,7 +72,7 @@ services:
       TYPESENSE_PROTOCOL: ${TYPESENSE_PROTOCOL:-http}
     volumes:
       - ./:/app
-      - /app-data:/app-data
+      - ./.docker/data:/app-data
       - vendor_data:/app/vendor
       - node_modules_data:/app/node_modules
       - caddy_data:/data
