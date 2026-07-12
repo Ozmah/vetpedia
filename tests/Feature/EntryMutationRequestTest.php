@@ -94,6 +94,27 @@ it('rejects invalid nested entry payloads and privileged fields', function (): v
         ]);
 });
 
+it('rejects aliases that collide after normalization', function (): void {
+    $user = User::factory()->create();
+    $entry = Entry::factory()->create(['created_by' => $user->id]);
+
+    $this->actingAs($user)
+        ->postJson('/_testing/entries', [
+            'type' => 'drug',
+            'title' => 'Acetylsalicylic acid',
+            'aliases' => ['Ácido acetilsalicílico', 'Acido acetilsalicilico'],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('aliases.1');
+
+    $this->actingAs($user)
+        ->patchJson('/_testing/entries/'.$entry->id, [
+            'aliases' => ['A  B', 'a b'],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('aliases.1');
+});
+
 it('rejects entry creation by suspended users before validation', function (): void {
     $user = User::factory()->suspended()->create();
 

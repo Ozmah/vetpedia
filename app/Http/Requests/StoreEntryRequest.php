@@ -9,6 +9,7 @@ use App\Models\Entry;
 use App\Models\Source;
 use App\Models\Species;
 use App\Models\User;
+use App\Rules\DistinctNormalizedEntryAlias;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -25,7 +26,7 @@ final class StoreEntryRequest extends FormRequest
     /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules(DistinctNormalizedEntryAlias $distinctNormalizedEntryAlias): array
     {
         return [
             'type' => ['required', Rule::enum(EntryType::class)],
@@ -34,7 +35,7 @@ final class StoreEntryRequest extends FormRequest
             'warnings' => ['nullable', 'string', 'max:10000'],
 
             'aliases' => ['sometimes', 'array', 'max:50'],
-            'aliases.*' => ['required', 'string', 'max:255', 'distinct:ignore_case'],
+            'aliases.*' => ['required', 'string', 'max:255', $distinctNormalizedEntryAlias],
 
             'species' => ['sometimes', 'array', 'max:50'],
             'species.*' => ['required', 'uuid', 'distinct', Rule::exists(Species::class, 'id')],

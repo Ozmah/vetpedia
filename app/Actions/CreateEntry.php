@@ -17,7 +17,7 @@ final readonly class CreateEntry
 {
     public function __construct(
         private GenerateUniqueEntrySlug $generateUniqueEntrySlug,
-        private NormalizeEntryAliasName $normalizeEntryAliasName,
+        private PrepareEntryAliases $prepareEntryAliases,
         private LogAuditEvent $logAuditEvent,
     ) {
         //
@@ -31,6 +31,8 @@ final readonly class CreateEntry
         Gate::forUser($actor)->authorize('create', Entry::class);
 
         return DB::transaction(function () use ($actor, $attributes): Entry {
+            $aliases = $this->prepareEntryAliases->handle($attributes['aliases'] ?? []);
+
             $entry = new Entry();
             $entry->setAttribute('type', $this->entryType($attributes['type']));
             $entry->setAttribute('status', $this->statusFor($attributes));
@@ -41,7 +43,7 @@ final readonly class CreateEntry
             $entry->setAttribute('created_by', $actor->id);
             $entry->save();
 
-            $this->syncAliases($entry, $attributes['aliases'] ?? []);
+            $this->syncAliases($entry, $aliases);
             $this->syncSpecies($entry, $attributes['species'] ?? []);
             $this->syncEntrySources($entry, $actor, $attributes['sources'] ?? []);
             $this->syncSections($entry, $actor, $attributes['sections'] ?? []);
@@ -92,16 +94,14 @@ final readonly class CreateEntry
     }
 
     /**
-     * @param  array<int, array{name: string}|string>  $aliases
+     * @param  list<array{name: string, normalized_name: string}>  $aliases
      */
     private function syncAliases(Entry $entry, array $aliases): void
     {
         foreach ($aliases as $alias) {
-            $name = is_string($alias) ? $alias : $alias['name'];
-
             $entryAlias = new EntryAlias();
-            $entryAlias->setAttribute('name', $name);
-            $entryAlias->setAttribute('normalized_name', $this->normalizeEntryAliasName->handle($name));
+            $entryAlias->setAttribute('name', $alias['name']);
+            $entryAlias->setAttribute('normalized_name', $alias['normalized_name']);
 
             $entry->aliases()->save($entryAlias);
         }
