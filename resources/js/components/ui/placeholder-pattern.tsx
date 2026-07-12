@@ -7,7 +7,7 @@ export function PlaceholderPattern({ className, ...props }: PlaceholderPatternPr
     const patternId = useId();
 
     return (
-        <svg className={className} fill="none" {...props}>
+        <svg className={className} {...props} fill="none">
             <defs>
                 <pattern id={patternId} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
                     <path d="M-3 13 15-5M-5 5l18-18M-1 21 17 3"></path>
