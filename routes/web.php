@@ -22,6 +22,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 });
 
 if (app()->environment(['local', 'testing'])) {
+    Route::get('local/ui', fn () => Inertia::render('local/ui'))
+        ->middleware(['auth', 'verified', 'can:'.Ability::ViewLocalUi->value])
+        ->name('local.ui.index');
+
     Route::middleware(['auth', 'verified', 'can:'.Ability::ViewLocalDatabase->value])
         ->prefix('local/database')
         ->name('local.database.')

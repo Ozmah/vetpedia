@@ -1,14 +1,13 @@
+import type { ComponentProps } from 'react';
 import { useId } from 'react';
 
-interface PlaceholderPatternProps {
-    className?: string;
-}
+type PlaceholderPatternProps = ComponentProps<'svg'>;
 
-export function PlaceholderPattern({ className }: PlaceholderPatternProps) {
+export function PlaceholderPattern({ className, ...props }: PlaceholderPatternProps) {
     const patternId = useId();
 
     return (
-        <svg className={className} fill="none">
+        <svg className={className} fill="none" {...props}>
             <defs>
                 <pattern id={patternId} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
                     <path d="M-3 13 15-5M-5 5l18-18M-1 21 17 3"></path>
