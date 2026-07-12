@@ -70,6 +70,7 @@ final class AppServiceProvider extends ServiceProvider
 
         // Local development
         Gate::define(Ability::ViewLocalDatabase->value, fn (User $user): bool => $user->isSuperadmin());
+        Gate::define(Ability::ViewLocalUi->value, fn (User $user): bool => $user->isSuperadmin());
     }
 
     private function isProtectedUserAbility(string $ability, User $target, mixed $requestedRole): bool

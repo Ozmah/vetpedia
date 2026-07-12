@@ -25,4 +25,5 @@ enum Ability: string
     case RunSearchMaintenance = 'run-search-maintenance';
     case RunBackups = 'run-backups';
     case ViewLocalDatabase = 'view-local-database';
+    case ViewLocalUi = 'view-local-ui';
 }
