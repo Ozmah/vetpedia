@@ -6,13 +6,60 @@ namespace App\Actions;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 final readonly class InspectLocalDatabaseTable
 {
     private const int PER_PAGE = 25;
 
-    private const string REDACTED_VALUE = '[redacted]';
+    private const string REDACTED_VALUE = '[censurado]';
+
+    /** @var list<string> */
+    private const array SENSITIVE_COLUMN_FRAGMENTS = [
+        'authorization',
+        'cookie',
+        'credential',
+        'passphrase',
+        'password',
+        'recovery_codes',
+        'secret',
+        'signature',
+        'token',
+    ];
+
+    /** @var list<string> */
+    private const array SENSITIVE_EXACT_COLUMNS = [
+        'access_key',
+        'api_key',
+        'auth_key',
+        'encryption_key',
+        'exception',
+        'failed_job_ids',
+        'options',
+        'payload',
+        'private_key',
+        'signing_key',
+    ];
+
+    /** @var list<string> */
+    private const array SENSITIVE_TABLE_FRAGMENTS = [
+        'cache',
+        'config',
+        'credential',
+        'key',
+        'secret',
+        'session',
+        'setting',
+        'token',
+    ];
+
+    /** @var list<string> */
+    private const array GENERIC_SECRET_COLUMNS = [
+        'content',
+        'data',
+        'value',
+    ];
 
     /**
      * @return array{
@@ -27,7 +74,7 @@ final readonly class InspectLocalDatabaseTable
     public function handle(string $table): array
     {
         $columns = $this->columns($table);
-        $redactedColumns = $this->redactedColumns($columns);
+        $redactedColumns = $this->redactedColumns($table, $columns);
 
         return [
             'name' => $table,
@@ -55,13 +102,18 @@ final readonly class InspectLocalDatabaseTable
                 continue;
             }
 
+            $name = (string) $column['name'];
+            $default = $this->scalarOrNull($column['default'] ?? null);
+
             $columns[] = [
-                'name' => (string) $column['name'],
+                'name' => $name,
                 'type' => is_scalar($column['type'] ?? null)
                     ? (string) $column['type']
                     : (is_scalar($column['type_name'] ?? null) ? (string) $column['type_name'] : 'unknown'),
                 'nullable' => (bool) ($column['nullable'] ?? false),
-                'default' => $this->scalarOrNull($column['default'] ?? null),
+                'default' => $this->isSensitiveColumn($table, $name) && $default !== null
+                    ? self::REDACTED_VALUE
+                    : $default,
                 'auto_increment' => (bool) ($column['auto_increment'] ?? false),
             ];
         }
@@ -158,12 +210,12 @@ final readonly class InspectLocalDatabaseTable
      * @param  list<array{name: string, type: string, nullable: bool, default: scalar|null, auto_increment: bool}>  $columns
      * @return list<string>
      */
-    private function redactedColumns(array $columns): array
+    private function redactedColumns(string $table, array $columns): array
     {
         $redactedColumns = [];
 
         foreach ($columns as $column) {
-            if ($this->isSensitiveColumn($column['name'])) {
+            if ($this->isSensitiveColumn($table, $column['name'])) {
                 $redactedColumns[] = $column['name'];
             }
         }
@@ -171,13 +223,30 @@ final readonly class InspectLocalDatabaseTable
         return $redactedColumns;
     }
 
-    private function isSensitiveColumn(string $column): bool
+    private function isSensitiveColumn(string $table, string $column): bool
     {
-        return in_array($column, ['payload', 'exception', 'options', 'failed_job_ids'], true)
-            || str_contains($column, 'password')
-            || str_contains($column, 'token')
-            || str_contains($column, 'secret')
-            || str_contains($column, 'recovery_codes');
+        $normalizedColumn = Str::snake($column);
+
+        if (in_array($normalizedColumn, self::SENSITIVE_EXACT_COLUMNS, true)) {
+            return true;
+        }
+
+        foreach (self::SENSITIVE_COLUMN_FRAGMENTS as $fragment) {
+            if (str_contains($normalizedColumn, $fragment)) {
+                return true;
+            }
+        }
+
+        return in_array($normalizedColumn, self::GENERIC_SECRET_COLUMNS, true)
+            && $this->isSensitiveTable($table);
+    }
+
+    private function isSensitiveTable(string $table): bool
+    {
+        return array_any(
+            explode('_', Str::snake($table)),
+            fn (string $segment): bool => in_array(Str::singular($segment), self::SENSITIVE_TABLE_FRAGMENTS, true),
+        );
     }
 
     /**
