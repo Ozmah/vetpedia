@@ -163,18 +163,33 @@ it('validates explicit entry transitions without accepting arbitrary statuses', 
 
     $this->actingAs($admin)
         ->postJson(sprintf('/_testing/entries/%s/transition', $entry->id), [
-            'transition' => 'publish',
-        ])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('transition');
-
-    $this->actingAs($admin)
-        ->postJson(sprintf('/_testing/entries/%s/transition', $entry->id), [
             'transition' => 'approve',
             'status' => 'vet_approved',
         ])
         ->assertUnprocessable()
         ->assertJsonValidationErrors('status');
+});
+
+it('fails closed for missing and unrecognized entry transitions', function (): void {
+    $entry = Entry::factory()->status(EntryStatus::Documented)->create();
+    $users = [
+        User::factory()->admin()->create(),
+        User::factory()->superadmin()->create(),
+    ];
+    $payloads = [
+        [],
+        ['transition' => ''],
+        ['transition' => 'publish'],
+        ['transition' => 'APPROVE'],
+    ];
+
+    foreach ($users as $user) {
+        foreach ($payloads as $payload) {
+            $this->actingAs($user)
+                ->postJson(sprintf('/_testing/entries/%s/transition', $entry->id), $payload)
+                ->assertForbidden();
+        }
+    }
 });
 
 it('requires permission and explicit confirmation for permanent deletion', function (): void {
