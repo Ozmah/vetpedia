@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\LogAuditEvent;
 use App\Http\Requests\CreateSessionRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,9 +23,9 @@ final readonly class SessionController
         ]);
     }
 
-    public function store(CreateSessionRequest $request): RedirectResponse
+    public function store(CreateSessionRequest $request, LogAuditEvent $logAuditEvent): RedirectResponse
     {
-        $user = $request->validateCredentials();
+        $user = $request->validateCredentials($logAuditEvent);
 
         if ($user->hasEnabledTwoFactorAuthentication()) {
             $request->session()->put([

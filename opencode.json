@@ -5,6 +5,15 @@
             "type": "local",
             "enabled": true,
             "command": [
+                "bunx",
+                "varlock",
+                "run",
+                "--",
+                "docker",
+                "compose",
+                "exec",
+                "-T",
+                "app",
                 "php",
                 "artisan",
                 "boost:mcp"

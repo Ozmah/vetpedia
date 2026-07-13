@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Actions\LogAuditEvent;
 use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,15 +28,25 @@ final class CreateSessionRequest extends FormRequest
     /**
      * @throws ValidationException
      */
-    public function validateCredentials(): User
+    public function validateCredentials(LogAuditEvent $logAuditEvent): User
     {
-        $this->ensureIsNotRateLimited();
+        $this->ensureIsNotRateLimited($logAuditEvent);
 
         /** @var User|null $user */
         $user = Auth::getProvider()->retrieveByCredentials($this->only('email', 'password'));
 
         if (! $user || ! Auth::getProvider()->validateCredentials($user, $this->only('password'))) {
             RateLimiter::hit($this->throttleKey());
+            $this->logFailedLoginAttempt($logAuditEvent, $user, 'invalid_credentials');
+
+            throw ValidationException::withMessages([
+                'email' => __('auth.failed'),
+            ]);
+        }
+
+        if ($user->isSuspended()) {
+            RateLimiter::hit($this->throttleKey());
+            $this->logFailedLoginAttempt($logAuditEvent, $user, 'suspended');
 
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
@@ -62,13 +73,15 @@ final class CreateSessionRequest extends FormRequest
     /**
      * @throws ValidationException
      */
-    private function ensureIsNotRateLimited(): void
+    private function ensureIsNotRateLimited(LogAuditEvent $logAuditEvent): void
     {
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
         event(new Lockout($this));
+
+        $this->logFailedLoginAttempt($logAuditEvent, null, 'rate_limited');
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
@@ -78,5 +91,26 @@ final class CreateSessionRequest extends FormRequest
                 'minutes' => ceil($seconds / 60),
             ]),
         ]);
+    }
+
+    private function logFailedLoginAttempt(LogAuditEvent $logAuditEvent, ?User $user, string $reason): void
+    {
+        $logAuditEvent->handle(
+            actor: $user,
+            action: 'auth.failed_login',
+            summary: 'Failed login attempt.',
+            subject: 'auth',
+            after: [
+                'attempted_email' => $this->attemptedEmail(),
+                'reason' => $reason,
+            ],
+            ipAddress: $this->ip(),
+            userAgent: $this->userAgent(),
+        );
+    }
+
+    private function attemptedEmail(): string
+    {
+        return $this->string('email')->trim()->lower()->value();
     }
 }

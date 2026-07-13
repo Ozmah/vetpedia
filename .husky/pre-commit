@@ -1,0 +1,13 @@
+bun run env:check
+bun run secrets:scan
+bun run check
+
+if [ -n "$(git diff)" ] || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+  exec < /dev/tty
+  echo ""
+  read -p "Changes not staged, continue? (y/n) [n]: " answer
+  if [ "$answer" != "y" ]; then
+    echo "Commit aborted."
+    exit 1
+  fi
+fi

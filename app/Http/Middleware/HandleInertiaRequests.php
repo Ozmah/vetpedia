@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\Ability;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -31,11 +32,17 @@ final class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $canViewLocalUi = app()->environment(['local', 'testing'])
+            && ($request->user()?->can(Ability::ViewLocalUi->value) ?? false);
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+            ],
+            'localTools' => [
+                'ui' => $canViewLocalUi ? route('local.ui.index', absolute: false) : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

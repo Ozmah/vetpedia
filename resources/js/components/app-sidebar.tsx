@@ -1,5 +1,5 @@
-import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { BookOpen, FlaskConical, FolderGit2, LayoutGrid } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -38,22 +38,36 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { localTools } = usePage().props;
+    const navigationItems =
+        localTools.ui !== null
+            ? [
+                  ...mainNavItems,
+                  {
+                      title: 'Laboratorio UI',
+                      href: localTools.ui,
+                      icon: FlaskConical,
+                  },
+              ]
+            : mainNavItems;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
-                                <AppLogo />
-                            </Link>
+                        <SidebarMenuButton
+                            size="lg"
+                            render={<Link href={dashboard()} prefetch />}
+                        >
+                            <AppLogo />
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={navigationItems} />
             </SidebarContent>
 
             <SidebarFooter>

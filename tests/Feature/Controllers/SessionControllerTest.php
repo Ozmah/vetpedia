@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\AuditEvent;
 use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Event;
@@ -35,6 +36,33 @@ it('may create a session', function (): void {
     $this->assertAuthenticatedAs($user);
 });
 
+it('logs successful authentication audit events', function (): void {
+    $user = User::factory()->withoutTwoFactor()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('password'),
+    ]);
+
+    $this->withHeader('User-Agent', 'Vetpedia Test Agent')
+        ->withServerVariables(['REMOTE_ADDR' => '203.0.113.10'])
+        ->fromRoute('login')
+        ->post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'password',
+        ])
+        ->assertRedirectToRoute('dashboard');
+
+    $event = AuditEvent::query()->sole();
+
+    expect($event->actor_id)->toBe($user->id)
+        ->and($event->action)->toBe('auth.login')
+        ->and($event->subject_type)->toBe('auth')
+        ->and($event->summary)->toBe('User logged in.')
+        ->and($event->ip_address)->toBe('203.0.113.10')
+        ->and($event->user_agent)->toBe('Vetpedia Test Agent')
+        ->and($event->before)->toBeNull()
+        ->and($event->after)->toBeNull();
+});
+
 it('may create a session with remember me', function (): void {
     $user = User::factory()->withoutTwoFactor()->create([
         'email' => 'test@example.com',
@@ -51,6 +79,35 @@ it('may create a session with remember me', function (): void {
     $response->assertRedirectToRoute('dashboard');
 
     $this->assertAuthenticatedAs($user);
+});
+
+it('does not create a session for suspended users', function (): void {
+    User::factory()->withoutTwoFactor()->suspended()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('password'),
+    ]);
+
+    $response = $this->fromRoute('login')
+        ->post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'password',
+        ]);
+
+    $response->assertRedirectToRoute('login')
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+it('logs out suspended users with existing sessions', function (): void {
+    $user = User::factory()->suspended()->create();
+
+    $response = $this->actingAs($user)
+        ->get(route('dashboard'));
+
+    $response->assertRedirectToRoute('login');
+
+    $this->assertGuest();
 });
 
 it('redirects to two-factor challenge when enabled', function (): void {
@@ -89,6 +146,64 @@ it('fails with invalid credentials', function (): void {
         ->assertSessionHasErrors('email');
 
     $this->assertGuest();
+});
+
+it('logs failed authentication audit events without sensitive credentials', function (): void {
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('password'),
+    ]);
+
+    $this->withHeader('User-Agent', 'Vetpedia Test Agent')
+        ->withServerVariables(['REMOTE_ADDR' => '203.0.113.20'])
+        ->fromRoute('login')
+        ->post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'wrong-password',
+        ])
+        ->assertRedirectToRoute('login')
+        ->assertSessionHasErrors('email');
+
+    $event = AuditEvent::query()->sole();
+
+    expect($event->actor_id)->toBe($user->id)
+        ->and($event->action)->toBe('auth.failed_login')
+        ->and($event->subject_type)->toBe('auth')
+        ->and($event->summary)->toBe('Failed login attempt.')
+        ->and($event->after)->toBe([
+            'attempted_email' => 'test@example.com',
+            'reason' => 'invalid_credentials',
+        ])
+        ->and($event->ip_address)->toBe('203.0.113.20')
+        ->and($event->user_agent)->toBe('Vetpedia Test Agent');
+
+    $encodedEvent = json_encode($event->toArray(), JSON_THROW_ON_ERROR);
+
+    expect($encodedEvent)->not->toContain('wrong-password');
+});
+
+it('logs failed authentication attempts for suspended users', function (): void {
+    $user = User::factory()->withoutTwoFactor()->suspended()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('password'),
+    ]);
+
+    $this->fromRoute('login')
+        ->post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'password',
+        ])
+        ->assertRedirectToRoute('login')
+        ->assertSessionHasErrors('email');
+
+    $event = AuditEvent::query()->sole();
+
+    expect($event->actor_id)->toBe($user->id)
+        ->and($event->action)->toBe('auth.failed_login')
+        ->and($event->after)->toBe([
+            'attempted_email' => 'test@example.com',
+            'reason' => 'suspended',
+        ]);
 });
 
 it('requires email', function (): void {
@@ -207,4 +322,9 @@ it('dispatches lockout event when rate limit is reached', function (): void {
     }
 
     Event::assertDispatched(Lockout::class);
+
+    expect(AuditEvent::query()->latest('created_at')->first()?->after)->toBe([
+        'attempted_email' => 'test@example.com',
+        'reason' => 'rate_limited',
+    ]);
 });
