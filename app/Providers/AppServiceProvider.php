@@ -8,6 +8,7 @@ use App\Enums\Ability;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Policies\UserPolicy;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +21,8 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        DB::prohibitDestructiveCommands(app()->isProduction());
+
         // Global authorization rules
         Gate::before(function (User $user, string $ability, mixed $arguments = null): ?bool {
             if ($user->isSuspended()) {

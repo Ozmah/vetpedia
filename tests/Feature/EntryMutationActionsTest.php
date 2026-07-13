@@ -7,9 +7,11 @@ use App\Actions\UpdateEntry;
 use App\Enums\EntryStatus;
 use App\Enums\EntryType;
 use App\Models\AuditEvent;
+use App\Models\Entry;
 use App\Models\Source;
 use App\Models\Species;
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
 
 it('creates draft entries without sources and writes an audit event', function (): void {
     $actor = User::factory()->admin()->create();
@@ -68,6 +70,24 @@ it('creates documented entries when direct or section sources are present', func
         ->and($entry->sources)->toHaveCount(1)
         ->and($entry->sources->first()?->citation->locator)->toBe('p. 10')
         ->and($entry->sources->first()?->citation->created_by)->toBe($actor->id);
+});
+
+it('rejects normalized alias collisions before creating an entry', function (): void {
+    $actor = User::factory()->admin()->create();
+    $errors = null;
+
+    try {
+        resolve(CreateEntry::class)->handle($actor, [
+            'type' => EntryType::Drug,
+            'title' => 'Acetylsalicylic acid',
+            'aliases' => ['Ácido acetilsalicílico', 'Acido acetilsalicilico'],
+        ]);
+    } catch (ValidationException $validationException) {
+        $errors = $validationException->errors();
+    }
+
+    expect($errors)->toHaveKey('aliases')
+        ->and(Entry::query()->doesntExist())->toBeTrue();
 });
 
 it('updates entries by syncing relations status and audit snapshots', function (): void {
@@ -161,4 +181,24 @@ it('demotes updated entries to draft when all sources are removed', function ():
     expect($updated->status)->toBe(EntryStatus::Draft)
         ->and($updated->sources)->toHaveCount(0)
         ->and($updated->sections)->toHaveCount(0);
+});
+
+it('rejects normalized alias collisions before changing an entry', function (): void {
+    $actor = User::factory()->admin()->create();
+    $entry = resolve(CreateEntry::class)->handle($actor, [
+        'type' => EntryType::Drug,
+        'title' => 'Original title',
+        'aliases' => ['Original alias'],
+    ]);
+
+    expect(fn () => resolve(UpdateEntry::class)->handle($actor, $entry, [
+        'title' => 'Changed title',
+        'aliases' => ['A  B', 'a b'],
+    ]))->toThrow(ValidationException::class);
+
+    $entry->refresh()->load('aliases');
+
+    expect($entry->title)->toBe('Original title')
+        ->and($entry->aliases)->toHaveCount(1)
+        ->and($entry->aliases->sole()->name)->toBe('Original alias');
 });

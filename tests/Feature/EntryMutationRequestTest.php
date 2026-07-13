@@ -94,6 +94,27 @@ it('rejects invalid nested entry payloads and privileged fields', function (): v
         ]);
 });
 
+it('rejects aliases that collide after normalization', function (): void {
+    $user = User::factory()->create();
+    $entry = Entry::factory()->create(['created_by' => $user->id]);
+
+    $this->actingAs($user)
+        ->postJson('/_testing/entries', [
+            'type' => 'drug',
+            'title' => 'Acetylsalicylic acid',
+            'aliases' => ['Ácido acetilsalicílico', 'Acido acetilsalicilico'],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('aliases.1');
+
+    $this->actingAs($user)
+        ->patchJson('/_testing/entries/'.$entry->id, [
+            'aliases' => ['A  B', 'a b'],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('aliases.1');
+});
+
 it('rejects entry creation by suspended users before validation', function (): void {
     $user = User::factory()->suspended()->create();
 
@@ -142,18 +163,33 @@ it('validates explicit entry transitions without accepting arbitrary statuses', 
 
     $this->actingAs($admin)
         ->postJson(sprintf('/_testing/entries/%s/transition', $entry->id), [
-            'transition' => 'publish',
-        ])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('transition');
-
-    $this->actingAs($admin)
-        ->postJson(sprintf('/_testing/entries/%s/transition', $entry->id), [
             'transition' => 'approve',
             'status' => 'vet_approved',
         ])
         ->assertUnprocessable()
         ->assertJsonValidationErrors('status');
+});
+
+it('fails closed for missing and unrecognized entry transitions', function (): void {
+    $entry = Entry::factory()->status(EntryStatus::Documented)->create();
+    $users = [
+        User::factory()->admin()->create(),
+        User::factory()->superadmin()->create(),
+    ];
+    $payloads = [
+        [],
+        ['transition' => ''],
+        ['transition' => 'publish'],
+        ['transition' => 'APPROVE'],
+    ];
+
+    foreach ($users as $user) {
+        foreach ($payloads as $payload) {
+            $this->actingAs($user)
+                ->postJson(sprintf('/_testing/entries/%s/transition', $entry->id), $payload)
+                ->assertForbidden();
+        }
+    }
 });
 
 it('requires permission and explicit confirmation for permanent deletion', function (): void {

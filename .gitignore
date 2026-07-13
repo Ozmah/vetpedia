@@ -25,5 +25,6 @@ Homestead.yaml
 /.nova
 /.vscode
 /.zed
+/.docker/data/
 /tmp/
 /local

@@ -29,7 +29,7 @@ final class ChangeEntryStatusRequest extends FormRequest
             EntryTransition::Archive => ! $entry->isArchived() && $user->can('archive', $entry),
             EntryTransition::Restore => $entry->isArchived() && $user->can('restore', $entry),
             EntryTransition::Delete => $entry->isArchived() && $user->can('forceDelete', $entry),
-            null => $this->canChangeEntryStatus($user, $entry),
+            null => false,
         };
     }
 
@@ -43,22 +43,5 @@ final class ChangeEntryStatusRequest extends FormRequest
             'confirmed' => ['exclude_unless:transition,delete', 'required', 'accepted'],
             'status' => ['prohibited'],
         ];
-    }
-
-    private function canChangeEntryStatus(User $user, Entry $entry): bool
-    {
-        if ($user->can('approve', $entry)) {
-            return true;
-        }
-
-        if ($user->can('archive', $entry)) {
-            return true;
-        }
-
-        if ($user->can('restore', $entry)) {
-            return true;
-        }
-
-        return $user->can('forceDelete', $entry);
     }
 }
