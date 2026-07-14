@@ -99,7 +99,7 @@
             "bun run test:lint:ci"
         ],
         "test:browser": "pest tests/Browser --parallel --processes=2 --compact",
-        "test:unit": "XDEBUG_MODE=\"coverage\" pest --parallel --testsuite=Unit,Feature --coverage --exactly=100.0",
+        "test:unit": "XDEBUG_MODE=\"coverage\" php -d zend.assertions=-1 vendor/bin/pest --parallel --processes=4 --testsuite=Unit,Feature --coverage --exactly=100.0",
         "test:types": [
             "phpstan --memory-limit=512M",
             "bun run test:types"
