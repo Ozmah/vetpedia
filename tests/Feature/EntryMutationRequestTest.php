@@ -211,6 +211,26 @@ it('validates explicit entry transitions without accepting arbitrary statuses', 
         ->assertJsonValidationErrors('status');
 });
 
+it('authorizes archive and restore transitions for admins', function (): void {
+    $admin = User::factory()->admin()->create();
+    $activeEntry = Entry::factory()->create();
+    $archivedEntry = Entry::factory()->archived()->create();
+
+    $this->actingAs($admin)
+        ->postJson(sprintf('/_testing/entries/%s/transition', $activeEntry->id), [
+            'transition' => 'archive',
+        ])
+        ->assertOk()
+        ->assertJsonPath('transition', 'archive');
+
+    $this->actingAs($admin)
+        ->postJson(sprintf('/_testing/entries/%s/transition', $archivedEntry->id), [
+            'transition' => 'restore',
+        ])
+        ->assertOk()
+        ->assertJsonPath('transition', 'restore');
+});
+
 it('fails closed for missing and unrecognized entry transitions', function (): void {
     $entry = Entry::factory()->status(EntryStatus::Documented)->create();
     $users = [
