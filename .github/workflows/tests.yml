@@ -3,10 +3,12 @@ name: tests
 on:
   push:
     branches:
-      - main
+      - develop
+      - master
   pull_request:
     branches:
-      - main
+      - develop
+      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -47,7 +49,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
 
       - name: Install Dependencies
@@ -63,26 +65,22 @@ jobs:
         run: bun install
 
       - name: Build Assets
-        run: bun run build
-
-      - name: Get Playwright version
-        id: playwright-version
-        run: echo "version=$(bun pm ls 2>/dev/null | grep playwright | head -1 | sed 's/.*@//')" >> $GITHUB_OUTPUT
+        run: bun run build:ssr:ci
 
       - name: Cache Playwright Browsers
         uses: actions/cache@v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+          key: ${{ runner.os }}-playwright-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright Browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: bunx playwright install --with-deps
+        run: bunx playwright install --with-deps chromium
 
       - name: Install Playwright System Dependencies
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: bunx playwright install-deps
+        run: bunx playwright install-deps chromium
 
       - name: Cache Rector
         uses: actions/cache@v4
@@ -102,7 +100,7 @@ jobs:
         run: mkdir -p /tmp/rector /tmp/phpstan
 
       - name: Tests
-        run: composer test
+        run: bun run shodan:ci
 
       - name: Store Artifacts
         if: failure()
@@ -110,3 +108,4 @@ jobs:
         with:
           name: browser-screenshots
           path: tests/Browser/Screenshots
+          if-no-files-found: ignore

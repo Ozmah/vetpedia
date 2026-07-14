@@ -22,6 +22,7 @@ export default function AppearanceToggleTab({
     return (
         <div
             role="group"
+            aria-label="Tema de apariencia"
             className={cn(
                 'inline-flex gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800',
                 className,

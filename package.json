@@ -4,23 +4,29 @@
     "scripts": {
         "build": "if [ -f /.dockerenv ]; then varlock run -- vp build; else bunx varlock run -- docker compose exec -T app bun run build; fi",
         "build:ssr": "if [ -f /.dockerenv ]; then varlock run -- vp build && varlock run -- vp build --ssr; else bunx varlock run -- docker compose exec -T app bun run build:ssr; fi",
+        "build:ssr:ci": "vp build && vp build --ssr",
         "check": "if [ -f /.dockerenv ]; then composer lint && composer test:app; else bunx varlock run -- docker compose exec -T app bun run check; fi",
         "dev": "if [ -f /.dockerenv ]; then varlock run -- vp dev; else bunx varlock run -- docker compose exec app bun run dev; fi",
+        "db:fresh": "if [ -f /.dockerenv ]; then php artisan app:db-fresh --no-interaction; else bunx varlock run -- docker compose exec -T app bun run db:fresh; fi",
+        "db:seed": "if [ -f /.dockerenv ]; then php artisan app:db-seed --no-interaction; else bunx varlock run -- docker compose exec -T app bun run db:seed; fi",
         "docker:down": "varlock run -- docker compose down",
         "docker:logs": "varlock run -- docker compose logs -f app",
         "docker:nuke": "varlock run -- docker compose down -v --remove-orphans",
         "docker:ps": "varlock run -- docker compose ps",
         "docker:up": "varlock run -- docker compose up -d --build --remove-orphans",
         "env:check": "varlock load",
-        "glados": "if [ -f /.dockerenv ]; then bun run env:check && composer validate --strict && composer test:lint && composer test:types && bun run build && composer test:app; else bun run env:check && bun run secrets:scan && bunx varlock run -- docker compose exec -T app bun run glados; fi",
+        "glados": "if [ -f /.dockerenv ]; then bun run env:check && composer validate --strict && composer test:lint && composer test:types && bun run build:ssr && composer test:app && composer test:browser; else bun run env:check && bun run secrets:scan && bunx varlock run -- docker compose exec -T app bun run glados; fi",
         "secrets:scan": "varlock scan",
         "secrets:scan:staged": "varlock scan --staged",
         "shodan": "if [ -f /.dockerenv ]; then composer test:app; else bunx varlock run -- docker compose exec -T app composer test:app; fi",
-        "shodan:ci": "composer test:app",
+        "shodan:ci": "composer test:ci",
         "lint": "if [ -f /.dockerenv ]; then NODE_OPTIONS='--experimental-strip-types' vp fmt resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint --fix; else bunx varlock run -- docker compose exec -T app bun run lint; fi",
         "prepare": "husky || true",
         "test:lint": "if [ -f /.dockerenv ]; then NODE_OPTIONS='--experimental-strip-types' vp fmt --check resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint; else bunx varlock run -- docker compose exec -T app bun run test:lint; fi",
-        "test:types": "if [ -f /.dockerenv ]; then tsc --noEmit; else bunx varlock run -- docker compose exec -T app bun run test:types; fi"
+        "test:lint:ci": "NODE_OPTIONS='--experimental-strip-types' vp fmt --check resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint",
+        "test:browser": "if [ -f /.dockerenv ]; then bun run build && composer test:browser; else bunx varlock run -- docker compose exec -T app bun run test:browser; fi",
+        "test:types": "if [ -f /.dockerenv ]; then tsc --noEmit; else bunx varlock run -- docker compose exec -T app bun run test:types; fi",
+        "test:types:ci": "tsc --noEmit"
     },
     "varlock": {
         "loadPath": [

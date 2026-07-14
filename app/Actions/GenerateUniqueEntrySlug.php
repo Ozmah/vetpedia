@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\Entry;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 final readonly class GenerateUniqueEntrySlug
@@ -34,7 +35,7 @@ final readonly class GenerateUniqueEntrySlug
 
         return Entry::query()
             ->where('slug', $slug)
-            ->when($ignoreKey !== null, fn ($query) => $query->whereKeyNot($ignoreKey))
+            ->when($ignoreKey !== null, fn (Builder $query): Builder => $query->whereKeyNot($ignoreKey))
             ->exists();
     }
 }

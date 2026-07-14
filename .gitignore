@@ -28,3 +28,4 @@ Homestead.yaml
 /.docker/data/
 /tmp/
 /local
+/tests/Browser/Screenshots/

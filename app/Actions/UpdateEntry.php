@@ -128,7 +128,7 @@ final readonly class UpdateEntry
         }
 
         if (array_key_exists('sections', $attributes)) {
-            return array_any($attributes['sections'], fn ($section): bool => ($section['sources'] ?? []) !== []);
+            return array_any($attributes['sections'], fn (array $section): bool => ($section['sources'] ?? []) !== []);
         }
 
         return $entry->sections->contains(fn (EntrySection $section): bool => $section->sources->isNotEmpty());
