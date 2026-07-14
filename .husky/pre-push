@@ -1,1 +1,2 @@
 bun run glados
+bun run shodan:coverage

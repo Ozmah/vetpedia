@@ -1,11 +1,9 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": null,
   "categories": {},
   "rules": {},
   "settings": {
     "jsx-a11y": {
-      "polymorphicPropName": null,
       "components": {},
       "attributes": {}
     },
@@ -15,7 +13,6 @@
     "react": {
       "formComponents": [],
       "linkComponents": [],
-      "version": null,
       "componentWrapperFunctions": []
     },
     "jsdoc": {
