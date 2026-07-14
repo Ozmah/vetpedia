@@ -16,7 +16,7 @@
         "docker:up": "varlock run -- docker compose up -d --build --remove-orphans",
         "env:check": "varlock load",
         "glados": "if [ -f /.dockerenv ]; then bun run env:check && bun run glados:ci; else bun run env:check && bun run secrets:scan && bunx varlock run -- docker compose exec -T app bun run glados; fi",
-        "glados:ci": "composer validate --strict && composer test:lint:ci && composer test:types:ci && bun run build:ssr:ci",
+        "glados:ci": "composer validate --strict && bun run build:ssr:ci && composer test:lint:ci && composer test:types:ci",
         "secrets:scan": "varlock scan",
         "secrets:scan:staged": "varlock scan --staged",
         "shodan": "if [ -f /.dockerenv ]; then composer test:app; else bunx varlock run -- docker compose exec -T app composer test:app; fi",
