@@ -115,6 +115,47 @@ it('rejects aliases that collide after normalization', function (): void {
         ->assertJsonValidationErrors('aliases.1');
 });
 
+it('normalizes optional update text and named aliases', function (): void {
+    $user = User::factory()->create();
+    $entry = Entry::factory()->create(['created_by' => $user->id]);
+
+    $this->actingAs($user)
+        ->patchJson('/_testing/entries/'.$entry->id, [
+            'summary' => '   ',
+            'warnings' => '  Monitor hydration.  ',
+            'aliases' => [
+                ['name' => '  Lasix  '],
+            ],
+        ])
+        ->assertOk()
+        ->assertJsonPath('summary', null)
+        ->assertJsonPath('warnings', 'Monitor hydration.')
+        ->assertJsonPath('aliases.0', 'Lasix');
+});
+
+it('preserves malformed aliases for validation to reject', function (): void {
+    $user = User::factory()->create();
+    $entry = Entry::factory()->create(['created_by' => $user->id]);
+
+    $this->actingAs($user)
+        ->postJson('/_testing/entries', [
+            'type' => 'drug',
+            'title' => 'Meloxicam',
+            'aliases' => [123],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('aliases.0');
+
+    $this->actingAs($user)
+        ->patchJson('/_testing/entries/'.$entry->id, [
+            'aliases' => [
+                ['label' => 'Lasix'],
+            ],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('aliases.0');
+});
+
 it('rejects entry creation by suspended users before validation', function (): void {
     $user = User::factory()->suspended()->create();
 
@@ -190,6 +231,25 @@ it('fails closed for missing and unrecognized entry transitions', function (): v
                 ->assertForbidden();
         }
     }
+});
+
+it('fails closed without a bound entry and authorizes a recognized transition', function (): void {
+    $admin = User::factory()->admin()->create();
+    $entry = Entry::factory()->status(EntryStatus::Documented)->create();
+    $request = ChangeEntryStatusRequest::create('/_testing/entries/invalid/transition', 'POST', [
+        'transition' => 'approve',
+    ]);
+    $request->setUserResolver(fn (): User => $admin);
+
+    expect($request->authorize())->toBeFalse();
+
+    $route = new Illuminate\Routing\Route('POST', '/_testing/entries/{entry}/transition', fn (): null => null);
+    $route->bind($request);
+    $route->setParameter('entry', $entry);
+
+    $request->setRouteResolver(fn (): Illuminate\Routing\Route => $route);
+
+    expect($request->authorize())->toBeTrue();
 });
 
 it('requires permission and explicit confirmation for permanent deletion', function (): void {

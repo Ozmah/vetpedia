@@ -183,6 +183,71 @@ it('demotes updated entries to draft when all sources are removed', function ():
         ->and($updated->sections)->toHaveCount(0);
 });
 
+it('documents an entry when an update adds direct sources', function (): void {
+    $actor = User::factory()->admin()->create();
+    $source = Source::factory()->create(['created_by' => $actor->id]);
+    $entry = resolve(CreateEntry::class)->handle($actor, [
+        'type' => EntryType::Drug,
+        'title' => 'Gabapentin',
+    ]);
+
+    $updated = resolve(UpdateEntry::class)->handle($actor, $entry, [
+        'sources' => [
+            ['id' => $source->id],
+        ],
+    ]);
+
+    expect($updated->status)->toBe(EntryStatus::Documented)
+        ->and($updated->sources)->toHaveCount(1);
+});
+
+it('retains documented status when an update omits existing direct sources', function (): void {
+    $actor = User::factory()->admin()->create();
+    $source = Source::factory()->create(['created_by' => $actor->id]);
+    $entry = resolve(CreateEntry::class)->handle($actor, [
+        'type' => EntryType::Drug,
+        'title' => 'Prednisolone',
+        'sources' => [
+            ['id' => $source->id],
+        ],
+    ]);
+
+    $updated = resolve(UpdateEntry::class)->handle($actor, $entry, [
+        'summary' => 'Updated summary.',
+    ]);
+
+    expect($updated->status)->toBe(EntryStatus::Documented)
+        ->and($updated->sources)->toHaveCount(1);
+});
+
+it('retains documented status when an update omits existing section sources', function (): void {
+    $actor = User::factory()->admin()->create();
+    $source = Source::factory()->create(['created_by' => $actor->id]);
+    $entry = resolve(CreateEntry::class)->handle($actor, [
+        'type' => EntryType::Drug,
+        'title' => 'Furosemide',
+        'sections' => [
+            [
+                'key' => 'description',
+                'title' => 'Description',
+                'body' => 'Loop diuretic.',
+                'sources' => [
+                    ['id' => $source->id],
+                ],
+            ],
+        ],
+    ]);
+
+    $updated = resolve(UpdateEntry::class)->handle($actor, $entry, [
+        'warnings' => 'Monitor hydration.',
+    ]);
+
+    expect($entry->status)->toBe(EntryStatus::Documented)
+        ->and($updated->status)->toBe(EntryStatus::Documented)
+        ->and($updated->sources)->toHaveCount(0)
+        ->and($updated->sections->sole()->sources)->toHaveCount(1);
+});
+
 it('rejects normalized alias collisions before changing an entry', function (): void {
     $actor = User::factory()->admin()->create();
     $entry = resolve(CreateEntry::class)->handle($actor, [

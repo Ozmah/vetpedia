@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\Ability;
 use App\Enums\UserRole;
 use App\Models\User;
+use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Gate;
 
 it('allows superadmins to use privileged gates except protected user mutations', function (): void {
@@ -76,4 +77,19 @@ it('denies authorization gates for suspended users regardless of role', function
         ->and(Gate::forUser($admin)->denies(Ability::ManageCatalogs->value))->toBeTrue()
         ->and(Gate::forUser($superadmin)->denies(Ability::RunBackups->value))->toBeTrue()
         ->and(Gate::forUser($superadmin)->denies(Ability::ViewLocalDatabase->value))->toBeTrue();
+});
+
+it('enforces user policy defaults independently of global gate hooks', function (): void {
+    $policy = resolve(UserPolicy::class);
+    $superadmin = User::factory()->superadmin()->create();
+    $admin = User::factory()->admin()->create();
+    $user = User::factory()->create();
+
+    expect($policy->viewAny($admin))->toBeTrue()
+        ->and($policy->viewAny($user))->toBeFalse()
+        ->and($policy->updateRole($superadmin, $superadmin, UserRole::Admin))->toBeFalse()
+        ->and($policy->unsuspend($admin, $user))->toBeTrue()
+        ->and($policy->unsuspend($user, $user))->toBeFalse()
+        ->and($policy->restore())->toBeFalse()
+        ->and($policy->forceDelete())->toBeFalse();
 });
