@@ -47,9 +47,15 @@ const applyTheme = (appearance: Appearance): void => {
     }
 
     const isDark = isDarkMode(appearance);
+    const root = document.documentElement;
 
-    document.documentElement.classList.toggle('dark', isDark);
-    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+    root.classList.add('theme-changing');
+    root.classList.toggle('dark', isDark);
+    root.style.colorScheme = isDark ? 'dark' : 'light';
+
+    // Commit the new theme while transitions are disabled before restoring them.
+    void root.offsetWidth;
+    root.classList.remove('theme-changing');
 };
 
 const subscribe = (callback: () => void) => {
