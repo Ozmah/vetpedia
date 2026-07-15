@@ -13,6 +13,7 @@ use App\Models\EntrySection;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use InvalidArgumentException;
 
 final readonly class UpdateEntry
 {
@@ -29,6 +30,10 @@ final readonly class UpdateEntry
      */
     public function handle(User $actor, Entry $entry, array $attributes): Entry
     {
+        if (array_key_exists('sections', $attributes)) {
+            $this->assertValidSections($attributes['sections']);
+        }
+
         return DB::transaction(function () use ($actor, $entry, $attributes): Entry {
             $entry = Entry::query()->lockForUpdate()->findOrFail($entry->id);
 
@@ -100,6 +105,15 @@ final readonly class UpdateEntry
     private function entryType(EntryType|string $type): EntryType
     {
         return $type instanceof EntryType ? $type : EntryType::from($type);
+    }
+
+    private function assertValidSections(mixed $sections): void
+    {
+        throw_unless(is_array($sections), InvalidArgumentException::class, 'Entry sections must be an array.');
+
+        foreach ($sections as $index => $section) {
+            throw_unless(is_array($section), InvalidArgumentException::class, sprintf('Entry section at index %s must be an array.', $index));
+        }
     }
 
     /**

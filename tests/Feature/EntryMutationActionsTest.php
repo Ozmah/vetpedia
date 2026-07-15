@@ -267,3 +267,21 @@ it('rejects normalized alias collisions before changing an entry', function (): 
         ->and($entry->aliases)->toHaveCount(1)
         ->and($entry->aliases->sole()->name)->toBe('Original alias');
 });
+
+it('rejects malformed sections before changing an entry', function (mixed $sections, string $message): void {
+    $actor = User::factory()->admin()->create();
+    $entry = Entry::factory()->create([
+        'created_by' => $actor->id,
+        'title' => 'Original title',
+    ]);
+
+    expect(fn () => resolve(UpdateEntry::class)->handle($actor, $entry, [
+        'title' => 'Changed title',
+        'sections' => $sections,
+    ]))->toThrow(InvalidArgumentException::class, $message);
+
+    expect($entry->refresh()->title)->toBe('Original title');
+})->with([
+    'sections is not an array' => ['invalid', 'Entry sections must be an array.'],
+    'section item is not an array' => [['invalid'], 'Entry section at index 0 must be an array.'],
+]);
