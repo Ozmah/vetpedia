@@ -22,6 +22,8 @@ pest()->extend(TestCase::class)
     })
     ->in('Browser', 'Feature', 'Unit');
 
+pest()->browser()->timeout(10_000);
+
 expect()->extend('toBeOne', fn () => $this->toBe(1));
 
 function something(): void

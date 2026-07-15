@@ -117,3 +117,18 @@ it('fails with invalid email', function (string $email): void {
     'user@sub.-domain.com',
     '𝓊𝓃𝒾𝒸ℴ𝒹ℯ@𝒹ℴ𝓂𝒶𝒾𝓃.𝒸ℴ𝓂',
 ]);
+
+it('fails closed for non-string values', function (mixed $value): void {
+    $failed = false;
+
+    (new ValidEmail)->validate('email', $value, function () use (&$failed): void {
+        $failed = true;
+    });
+
+    expect($failed)->toBeTrue();
+})->with([
+    'null' => [null],
+    'integer' => [123],
+    'array' => [[]],
+    'object' => [new stdClass()],
+]);

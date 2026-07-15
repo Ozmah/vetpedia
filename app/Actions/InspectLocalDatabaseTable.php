@@ -104,6 +104,7 @@ final readonly class InspectLocalDatabaseTable
 
             $name = (string) $column['name'];
             $default = $this->scalarOrNull($column['default'] ?? null);
+            $isSensitiveDefault = $this->isSensitiveColumn($table, $name) && $default !== null;
 
             $columns[] = [
                 'name' => $name,
@@ -111,9 +112,7 @@ final readonly class InspectLocalDatabaseTable
                     ? (string) $column['type']
                     : (is_scalar($column['type_name'] ?? null) ? (string) $column['type_name'] : 'unknown'),
                 'nullable' => (bool) ($column['nullable'] ?? false),
-                'default' => $this->isSensitiveColumn($table, $name) && $default !== null
-                    ? self::REDACTED_VALUE
-                    : $default,
+                'default' => $isSensitiveDefault ? self::REDACTED_VALUE : $default,
                 'auto_increment' => (bool) ($column['auto_increment'] ?? false),
             ];
         }

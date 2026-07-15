@@ -8,20 +8,18 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
-import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
 import { edit } from '@/routes/user-profile';
 import type { User } from '@/types';
 
 type Props = {
     user: User;
+    onNavigate?: () => void;
 };
 
-export function UserMenuContent({ user }: Props) {
-    const cleanup = useMobileNavigation();
-
+export function UserMenuContent({ user, onNavigate }: Props) {
     const handleLogout = () => {
-        cleanup();
+        onNavigate?.();
         router.flushAll();
     };
 
@@ -42,7 +40,7 @@ export function UserMenuContent({ user }: Props) {
                             className="block w-full cursor-pointer"
                             href={edit()}
                             prefetch
-                            onClick={cleanup}
+                            onClick={onNavigate}
                         />
                     }
                 >

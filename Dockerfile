@@ -36,11 +36,17 @@ WORKDIR /app
 
 FROM runtime-base AS development
 
+RUN install-php-extensions xdebug
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=node:24-bookworm-slim /usr/local/bin/node /usr/local/bin/node
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    XDEBUG_MODE=off
 
 RUN ln -s /usr/local/bin/bun /usr/local/bin/bunx \
-    && ln -s /usr/local/bin/bun /usr/local/bin/node
+    && touch /usr/local/share/vetpedia-development-image
 
 USER vetpedia
 
@@ -54,7 +60,14 @@ RUN composer install \
 
 COPY --chown=vetpedia:vetpedia package.json bun.lock* ./
 
-RUN bun install
+RUN bun install --frozen-lockfile
+
+USER root
+
+RUN bunx playwright install --with-deps chromium \
+    && chown -R vetpedia:vetpedia /ms-playwright
+
+USER vetpedia
 
 # Worker mode is intentionally disabled during the bootstrap phase.
 # Enable it only after the application lifecycle and deployment needs are clear.
