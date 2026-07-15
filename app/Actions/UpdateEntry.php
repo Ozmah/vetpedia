@@ -13,6 +13,7 @@ use App\Models\EntrySection;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use InvalidArgumentException;
 
 final readonly class UpdateEntry
 {
@@ -29,6 +30,10 @@ final readonly class UpdateEntry
      */
     public function handle(User $actor, Entry $entry, array $attributes): Entry
     {
+        if (array_key_exists('sections', $attributes)) {
+            $this->assertValidSections($attributes['sections']);
+        }
+
         return DB::transaction(function () use ($actor, $entry, $attributes): Entry {
             $entry = Entry::query()->lockForUpdate()->findOrFail($entry->id);
 
@@ -102,6 +107,15 @@ final readonly class UpdateEntry
         return $type instanceof EntryType ? $type : EntryType::from($type);
     }
 
+    private function assertValidSections(mixed $sections): void
+    {
+        throw_unless(is_array($sections), InvalidArgumentException::class, 'Entry sections must be an array.');
+
+        foreach ($sections as $index => $section) {
+            throw_unless(is_array($section), InvalidArgumentException::class, sprintf('Entry section at index %s must be an array.', $index));
+        }
+    }
+
     /**
      * @param  array{type?: EntryType|string, title?: string, summary?: string|null, warnings?: string|null, aliases?: array<int, array{name: string}|string>, species?: array<int, string>, sources?: array<int, array{id: string, locator?: string|null, note?: string|null}>, sections?: array<int, array{key: string, title: string, body: string, sort_order?: int, sources?: array<int, array{id: string, locator?: string|null, note?: string|null}>}>}  $attributes
      */
@@ -128,7 +142,7 @@ final readonly class UpdateEntry
         }
 
         if (array_key_exists('sections', $attributes)) {
-            return array_any($attributes['sections'], fn ($section): bool => ($section['sources'] ?? []) !== []);
+            return array_any($attributes['sections'], fn (array $section): bool => ($section['sources'] ?? []) !== []);
         }
 
         return $entry->sections->contains(fn (EntrySection $section): bool => $section->sources->isNotEmpty());

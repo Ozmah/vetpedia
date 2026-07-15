@@ -16,9 +16,6 @@ final class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $user = $this->user();
-        assert($user instanceof User);
-
         return [
             'name' => ['required', 'string', 'max:255'],
 
@@ -28,7 +25,7 @@ final class UpdateUserRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore($user->id),
+                Rule::unique(User::class)->ignore($this->user()),
             ],
         ];
     }

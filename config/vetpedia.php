@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 return [
+    'environment' => env('INFISICAL_ENV'),
+
     'seed_users' => [
         'superadmin' => [
             'name' => env('VETPEDIA_SUPERADMIN_NAME'),

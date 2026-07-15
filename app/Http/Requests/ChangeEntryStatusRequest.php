@@ -24,13 +24,23 @@ final class ChangeEntryStatusRequest extends FormRequest
 
         $transition = EntryTransition::tryFrom($this->string('transition')->value());
 
-        return match ($transition) {
-            EntryTransition::Approve => ! $entry->isArchived() && $user->can('approve', $entry),
-            EntryTransition::Archive => ! $entry->isArchived() && $user->can('archive', $entry),
-            EntryTransition::Restore => $entry->isArchived() && $user->can('restore', $entry),
-            EntryTransition::Delete => $entry->isArchived() && $user->can('forceDelete', $entry),
-            null => false,
-        };
+        if ($transition === EntryTransition::Approve) {
+            return ! $entry->isArchived() && $user->can('approve', $entry);
+        }
+
+        if ($transition === EntryTransition::Archive) {
+            return ! $entry->isArchived() && $user->can('archive', $entry);
+        }
+
+        if ($transition === EntryTransition::Restore) {
+            return $entry->isArchived() && $user->can('restore', $entry);
+        }
+
+        if ($transition === EntryTransition::Delete) {
+            return $entry->isArchived() && $user->can('forceDelete', $entry);
+        }
+
+        return false;
     }
 
     /**
